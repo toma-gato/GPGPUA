@@ -71,9 +71,9 @@ void your_reduce(rmm::device_uvector<int>& buffer,
     // TODO fill in blocks, threads, and shared memory
     // Help: To properly compute the amount of block, use the following API: (<PROBLEM_SIZE> + <BLOCK_SIZE> - 1) / <BLOCK_SIZE>
 
-    rmm::device_uvector<int> tmp(512 * sizeof(int), buffer.stream());
+    rmm::device_uvector<int> tmp(1024 * sizeof(int), buffer.stream());
 
-    kernel_your_reduce<int><<<512, 1024, 1024 * sizeof(int), buffer.stream()>>>(
+    kernel_your_reduce<int><<<1024, 1024, 1024 * sizeof(int), buffer.stream()>>>(
         raft::device_span<const int>(buffer.data(), buffer.size()),
         raft::device_span<int>(tmp.data(), 1));
 
