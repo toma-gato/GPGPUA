@@ -32,8 +32,8 @@ int main(int argc, char** argv)
             64,
             128,
             129,
-            524288,
-            1048576
+            //524288,
+            //1048576
         };
 
         // Add the name and function to benchmark here
