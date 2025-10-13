@@ -77,7 +77,7 @@ void your_reduce(rmm::device_uvector<int>& buffer,
         raft::device_span<const int>(buffer.data(), buffer.size()),
         raft::device_span<int>(tmp.data(), 1));
 
-    kernel_your_reduce<int><<<1, 64, 64 * sizeof(int), buffer.stream()>>>(
+    kernel_your_reduce<int><<<1, 1024, 1024 * sizeof(int), buffer.stream()>>>(
         raft::device_span<const int>(tmp.data(), tmp.size()),
         raft::device_span<int>(total.data(), 1));
 
