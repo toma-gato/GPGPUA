@@ -37,6 +37,20 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
 
     // TODO
     // Your reduce code
+    extern __shared__ T sdata[];
+
+    unsigned int tid = threadIdx.x;
+    unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+    sdata[tid] = buffer[i];
+    __syncthreads();
+
+    for (int s = 1; s < blockDim.x; s *= 2) {
+        if (tid % (2 * s) == 0)
+            sdata[tid] = buffer[i];
+        __syncthreads();
+    }
+
+    if (tid == 0) total[blockIdx.x] = sdata[0];
 }
 
 void your_reduce(rmm::device_uvector<int>& buffer,
@@ -52,8 +66,14 @@ void your_reduce(rmm::device_uvector<int>& buffer,
     // TODO fill in blocks, threads, and shared memory
     // Help: To properly compute the amount of block, use the following API: (<PROBLEM_SIZE> + <BLOCK_SIZE> - 1) / <BLOCK_SIZE>
 
-    kernel_your_reduce<int><<<1, 1, 0, buffer.stream()>>>(
+    rmm::device_uvector<int> tmp(2 * sizeof(int), buffer.stream());
+
+    kernel_your_reduce<int><<<2, 64, 2 * 64 * sizeof(int), buffer.stream()>>>(
         raft::device_span<const int>(buffer.data(), buffer.size()),
+        raft::device_span<int>(tmp.data(), 1));
+
+    kernel_your_reduce<int><<<1, 2, 2 * sizeof(int), buffer.stream()>>>(
+        raft::device_span<const int>(tmp.data(), tmp.size()),
         raft::device_span<int>(total.data(), 1));
 
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
