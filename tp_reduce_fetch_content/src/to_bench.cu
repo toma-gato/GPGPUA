@@ -41,7 +41,12 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
 
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
-    sdata[tid] = buffer[i];
+
+    if (i < buffer.size())
+        sdata[tid] = buffer[i];
+    else:
+        sdata[tid] = 0;
+    
     __syncthreads();
 
     for (int s = 1; s < blockDim.x; s *= 2) {
@@ -66,13 +71,13 @@ void your_reduce(rmm::device_uvector<int>& buffer,
     // TODO fill in blocks, threads, and shared memory
     // Help: To properly compute the amount of block, use the following API: (<PROBLEM_SIZE> + <BLOCK_SIZE> - 1) / <BLOCK_SIZE>
 
-    rmm::device_uvector<int> tmp(2 * sizeof(int), buffer.stream());
+    rmm::device_uvector<int> tmp(3 * sizeof(int), buffer.stream());
 
-    kernel_your_reduce<int><<<2, 64, 2 * 64 * sizeof(int), buffer.stream()>>>(
+    kernel_your_reduce<int><<<3, 64, 3 * 64 * sizeof(int), buffer.stream()>>>(
         raft::device_span<const int>(buffer.data(), buffer.size()),
         raft::device_span<int>(tmp.data(), 1));
 
-    kernel_your_reduce<int><<<1, 2, 2 * sizeof(int), buffer.stream()>>>(
+    kernel_your_reduce<int><<<1, 3, 3 * sizeof(int), buffer.stream()>>>(
         raft::device_span<const int>(tmp.data(), tmp.size()),
         raft::device_span<int>(total.data(), 1));
 
