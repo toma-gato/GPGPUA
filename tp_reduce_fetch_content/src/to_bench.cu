@@ -44,7 +44,7 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
 
     if (i < buffer.size())
         sdata[tid] = buffer[i];
-    else:
+    else
         sdata[tid] = 0;
     
     __syncthreads();
