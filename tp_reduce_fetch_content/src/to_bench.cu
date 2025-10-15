@@ -35,7 +35,7 @@ __device__ void warp_reduce(int* sdata, unsigned int tid) {
     sdata[tid] += sdata[tid + 1]; __syncwarp();
 }
 
-template <typename T>
+template <typename T; int BLOCK_SIZE>
 __global__
 void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> total)
 {
@@ -62,9 +62,25 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
     
     __syncthreads();
 
-    for (int s = blockDim.x / 2; s > 32; s /= 2) {
-        if (tid < s)
-            sdata[tid] += sdata[tid + s];
+    // for (int s = blockDim.x / 2; s > 32; s /= 2) {
+    //     if (tid < s)
+    //         sdata[tid] += sdata[tid + s];
+    //     __syncthreads();
+    // }
+
+    if constexpr (BLOCK_SIZE >= 512) {
+        if (tid < 256)
+            sdata[tid] += sdata[tid + 256];
+        __syncthreads();
+    }
+    if constexpr (BLOCK_SIZE >= 256) {
+        if (tid < 128)
+            sdata[tid] += sdata[tid + 128];
+        __syncthreads();
+    }
+    if constexpr (BLOCK_SIZE >= 128) {
+        if (tid < 64)
+            sdata[tid] += sdata[tid + 64];
         __syncthreads();
     }
 
