@@ -102,9 +102,7 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
     if (tid < 32)
         sum += warp_reduce(sdata[tid]);
 
-    printf("sum: %d\n", sum);
-
-    if (tid == 0) total[blockIdx.x] = sdata[0];
+    if (tid == 0) total[blockIdx.x] = sum;
 }
 
 void your_reduce(rmm::device_uvector<int>& buffer,
