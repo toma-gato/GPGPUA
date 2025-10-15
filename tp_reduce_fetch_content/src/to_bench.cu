@@ -29,7 +29,7 @@ void baseline_reduce(rmm::device_uvector<int>& buffer,
 inline __device__ int warp_reduce(int val) {
     #pragma unroll
     for (int offset = warpSize / 2; offset > 0; offset /= 2) {
-        val += __shfl_down_sync(~0,val, offset);
+        val += __shfl_down_sync(~0, val, offset);
     }
     return val;
 }
@@ -99,7 +99,7 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
     }
 
     if (tid < 32)
-        sdata[tid] = warp_reduce(sdata[tid]);
+        sdata[tid] += warp_reduce(sdata[tid]);
 
     if (tid == 0) total[blockIdx.x] = sdata[0];
 }
