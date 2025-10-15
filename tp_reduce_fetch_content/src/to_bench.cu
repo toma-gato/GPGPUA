@@ -67,7 +67,10 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
 
     sdata[tid] = 0;
     while(i < buffer.size()) {
-        sdata[tid] += buffer[i] + buffer[i + BLOCK_SIZE];
+        if (i + BLOCK_SIZE < buffer.size())
+            sdata[tid] += buffer[i] + buffer[i + BLOCK_SIZE];
+        else
+            sdata[tid] += buffer[i];
         i += gridSize;
     }
 
