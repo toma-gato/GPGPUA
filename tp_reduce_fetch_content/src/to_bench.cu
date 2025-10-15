@@ -45,6 +45,7 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
 
     // TODO
     // Your reduce code
+    unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
     unsigned int gridSize = BLOCK_SIZE * 2 * gridDim.x;
 
