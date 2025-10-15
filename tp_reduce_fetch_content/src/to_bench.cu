@@ -27,6 +27,16 @@ void baseline_reduce(rmm::device_uvector<int>& buffer,
 }
 
 template <typename T>
+__device__ void warp_reduce(raft::device_span<T> sdata, int tid) {
+    sdata[tid] += sdata[tid + 32]; __syncwarp();
+    sdata[tid] += sdata[tid + 16]; __syncwarp();
+    sdata[tid] += sdata[tid + 8]; __syncwarp();
+    sdata[tid] += sdata[tid + 4]; __syncwarp();
+    sdata[tid] += sdata[tid + 2]; __syncwarp();
+    sdata[tid] += sdata[tid + 1]; __syncwarp();
+}
+
+template <typename T>
 __global__
 void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> total)
 {
@@ -53,18 +63,13 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
     
     __syncthreads();
 
-    for (int s = blockDim.x / 2; s > 32; s >>= 1) {
+    for (int s = blockDim.x / 2; s > 32; s /= 2) {
         if (tid < s)
             sdata[tid] += sdata[tid + s];
         __syncthreads();
     }
 
-    sdata[tid] += sdata[tid + 32]; __syncwarp();
-    sdata[tid] += sdata[tid + 16]; __syncwarp();
-    sdata[tid] += sdata[tid + 8]; __syncwarp();
-    sdata[tid] += sdata[tid + 4]; __syncwarp();
-    sdata[tid] += sdata[tid + 2]; __syncwarp();
-    sdata[tid] += sdata[tid + 1]; __syncwarp();
+    warp_reduce(sdata, tid);
 
     if (tid == 0) total[blockIdx.x] = sdata[0];
 }
