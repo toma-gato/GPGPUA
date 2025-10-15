@@ -43,7 +43,7 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
     unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (i < buffer.size())
-        sdata[tid] = buffer[i];
+        sdata[tid] = buffer[i] + buffer[i + blockDim.x];
     else
         sdata[tid] = 0;
     
