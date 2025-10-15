@@ -35,7 +35,7 @@ __device__ void warp_reduce(int* sdata, unsigned int tid) {
     sdata[tid] += sdata[tid + 1]; __syncwarp();
 }
 
-template <typename T; int BLOCK_SIZE>
+template <typename T, int BLOCK_SIZE>
 __global__
 void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> total)
 {
