@@ -26,8 +26,7 @@ void baseline_reduce(rmm::device_uvector<int>& buffer,
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 }
 
-template <typename T>
-__device__ void warp_reduce(raft::device_span<T> sdata, unsigned int tid) {
+__device__ void warp_reduce(int* sdata, unsigned int tid) {
     sdata[tid] += sdata[tid + 32]; __syncwarp();
     sdata[tid] += sdata[tid + 16]; __syncwarp();
     sdata[tid] += sdata[tid + 8]; __syncwarp();
