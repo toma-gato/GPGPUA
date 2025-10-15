@@ -40,7 +40,7 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
     extern __shared__ T sdata[];
 
     unsigned int tid = threadIdx.x;
-    unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
 
     if (i < buffer.size())
         sdata[tid] = buffer[i] + buffer[i + blockDim.x];
