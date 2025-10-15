@@ -68,7 +68,8 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
         __syncthreads();
     }
 
-    warp_reduce(sdata, tid);
+    if (tid < 32)
+        warp_reduce(sdata, tid);
 
     if (tid == 0) total[blockIdx.x] = sdata[0];
 }
