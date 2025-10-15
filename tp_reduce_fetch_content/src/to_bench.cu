@@ -98,8 +98,11 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
         __syncthreads();
     }
 
+    int sum = 0;
     if (tid < 32)
-        sdata[tid] += warp_reduce(sdata[tid]);
+        sum += warp_reduce(sdata[tid]);
+
+    printf("sum: %d\n", sum)
 
     if (tid == 0) total[blockIdx.x] = sdata[0];
 }
