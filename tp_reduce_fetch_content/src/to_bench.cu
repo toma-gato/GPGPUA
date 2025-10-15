@@ -61,7 +61,7 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
     sum = warp_reduce(sum);
 
     if (tid % 32 == 0)
-        atomic_result.fetch_add(sum, cuda::memory_order_relaxed);
+        atomic_result.fetch_add(sum, cuda::std::memory_order_relaxed);
 }
 
 void your_reduce(rmm::device_uvector<int>& buffer,
