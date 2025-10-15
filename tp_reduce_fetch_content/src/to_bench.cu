@@ -26,26 +26,12 @@ void baseline_reduce(rmm::device_uvector<int>& buffer,
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 }
 
-template <int BLOCK_SIZE>
-__device__ void warp_reduce(int* sdata, unsigned int tid) {
-    if (BLOCK_SIZE >= 64) {
-        sdata[tid] += sdata[tid + 32]; __syncwarp();
+inline __device__ int warp_reduce(int val) {
+    #pragma unroll
+    for (int offset = warpSize / 2; offset > 0; offset /= 2) {
+        val += __shfl_down_sync(~0, val, offset);
     }
-    if (BLOCK_SIZE >= 32) {
-        sdata[tid] += sdata[tid + 16]; __syncwarp();
-    }
-    if (BLOCK_SIZE >= 16) {
-        sdata[tid] += sdata[tid + 8]; __syncwarp();
-    }
-    if (BLOCK_SIZE >= 8) {
-        sdata[tid] += sdata[tid + 4]; __syncwarp();
-    }
-    if (BLOCK_SIZE >= 4) {
-        sdata[tid] += sdata[tid + 2]; __syncwarp();
-    }
-    if (BLOCK_SIZE >= 2) {
-        sdata[tid] += sdata[tid + 1]; __syncwarp();
-    }
+    return val;
 }
 
 template <typename T, int BLOCK_SIZE>
@@ -59,63 +45,23 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
 
     // TODO
     // Your reduce code
-    extern __shared__ T sdata[];
-
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
     unsigned int gridSize = BLOCK_SIZE * 2 * gridDim.x;
 
-    sdata[tid] = 0;
+    int sum = 0;
     while(i < buffer.size()) {
         if (i + BLOCK_SIZE < buffer.size())
-            sdata[tid] += buffer[i] + buffer[i + BLOCK_SIZE];
+            sum += buffer[i] + buffer[i + BLOCK_SIZE];
         else
-            sdata[tid] += buffer[i];
+            sum += buffer[i];
         i += gridSize;
     }
-
-    // if (i < buffer.size()) {
-    //     if (i + blockDim.x < buffer.size())
-    //         sdata[tid] = buffer[i] + buffer[i + blockDim.x];
-    //     else
-    //         sdata[tid] = buffer[i];
-    // }
-    // else
-    //     sdata[tid] = 0;
     
-    __syncthreads();
+    sum = warp_reduce(sum);
 
-    // for (int s = blockDim.x / 2; s > 32; s /= 2) {
-    //     if (tid < s)
-    //         sdata[tid] += sdata[tid + s];
-    //     __syncthreads();
-    // }
-
-    if constexpr (BLOCK_SIZE >= 1024) {
-        if (tid < 512)
-            sdata[tid] += sdata[tid + 512];
-        __syncthreads();
-    }
-    if constexpr (BLOCK_SIZE >= 512) {
-        if (tid < 256)
-            sdata[tid] += sdata[tid + 256];
-        __syncthreads();
-    }
-    if constexpr (BLOCK_SIZE >= 256) {
-        if (tid < 128)
-            sdata[tid] += sdata[tid + 128];
-        __syncthreads();
-    }
-    if constexpr (BLOCK_SIZE >= 128) {
-        if (tid < 64)
-            sdata[tid] += sdata[tid + 64];
-        __syncthreads();
-    }
-
-    if (tid < 32)
-        warp_reduce<BLOCK_SIZE>(sdata, tid);
-
-    if (tid == 0) total[blockIdx.x] = sdata[0];
+    if (tid % 32 == 0)
+        atomic_result.fetch_add(sum, cuda::memory_order_relaxed);
 }
 
 void your_reduce(rmm::device_uvector<int>& buffer,
