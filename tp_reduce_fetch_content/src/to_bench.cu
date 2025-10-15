@@ -81,6 +81,11 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
     //     __syncthreads();
     // }
 
+    if constexpr (BLOCK_SIZE >= 1024) {
+        if (tid < 512)
+            sdata[tid] += sdata[tid + 512];
+        __syncthreads();
+    }
     if constexpr (BLOCK_SIZE >= 512) {
         if (tid < 256)
             sdata[tid] += sdata[tid + 256];
