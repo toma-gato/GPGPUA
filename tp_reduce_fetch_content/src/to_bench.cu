@@ -28,9 +28,8 @@ void baseline_reduce(rmm::device_uvector<int>& buffer,
 
 inline __device__ int warp_reduce(int val) {
     #pragma unroll
-    for (int offset = warpSize / 2; offset > 0; offset /= 2) {
+    for (int offset = warpSize; offset > 0; offset /= 2) {
         val += __shfl_down_sync(~0, val, offset);
-        __syncwarp();
     }
     return val;
 }
