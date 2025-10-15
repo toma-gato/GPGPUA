@@ -52,7 +52,7 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
     for (int s = 1; s < blockDim.x; s *= 2) {
         int index = 2 * s * tid;
         if (index < blockDim.x)
-            sdata[tid] += sdata[index + s];
+            sdata[index] += sdata[index + s];
         __syncthreads();
     }
 
