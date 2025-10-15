@@ -63,15 +63,22 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
 
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
+    unsigned int gridSize = BLOCK_SIZE * 2 * gridDim.x;
 
-    if (i < buffer.size()) {
-        if (i + blockDim.x < buffer.size())
-            sdata[tid] = buffer[i] + buffer[i + blockDim.x];
-        else
-            sdata[tid] = buffer[i];
+    sdata[tid] = 0;
+    while(i < buffer.size()) {
+        sdata[tid] += buffer[i] + buffer[i + BLOCK_SIZE];
+        i += gridSize;
     }
-    else
-        sdata[tid] = 0;
+
+    // if (i < buffer.size()) {
+    //     if (i + blockDim.x < buffer.size())
+    //         sdata[tid] = buffer[i] + buffer[i + blockDim.x];
+    //     else
+    //         sdata[tid] = buffer[i];
+    // }
+    // else
+    //     sdata[tid] = 0;
     
     __syncthreads();
 
