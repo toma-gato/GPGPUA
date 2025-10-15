@@ -45,22 +45,24 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
 
     // TODO
     // Your reduce code
-    unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
     unsigned int gridSize = BLOCK_SIZE * 2 * gridDim.x;
 
+    cuda::std::atomic_ref<int> atomic_result{*total.data()};
+
     int sum = 0;
-    while(i < buffer.size()) {
-        if (i + BLOCK_SIZE < buffer.size())
-            sum += buffer[i] + buffer[i + BLOCK_SIZE];
-        else
-            sum += buffer[i];
+    while(i < buffer.size() / 4) {
+        //if (i + BLOCK_SIZE < buffer.size()) {
+            int4 val = reinterpret_cast<int4*>(buffer)[i];
+            sum += val.x + val.y + val.z + val.w;
+        //}
+        //else
+        //    sum += buffer[i];
         i += gridSize;
     }
     
     sum = warp_reduce(sum);
 
-    cuda::std::atomic_ref<int> atomic_result{*total.data()};
     if (tid % 32 == 0)
         atomic_result.fetch_add(sum, cuda::memory_order_relaxed);
 }
