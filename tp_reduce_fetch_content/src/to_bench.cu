@@ -107,11 +107,6 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
             sdata[tid] += sdata[tid + 64];
         __syncthreads();
     }
-    if constexpr (BLOCK_SIZE >= 64) {
-        if (tid < 32)
-            sdata[tid] += sdata[tid + 32];
-        __syncthreads();
-    }
 
     if (tid < 32)
         warp_reduce<BLOCK_SIZE>(sdata, tid);
