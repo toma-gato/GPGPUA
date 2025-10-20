@@ -136,7 +136,7 @@ void kernel_your_scan_dispatcher(raft::device_span<const T> block_sums, raft::de
         __syncthreads();
 
         if (blockIdx.x > 0)
-            printf("block %d", blockIdx.x);
+            printf("block %d\n", block_sums[blockIdx.x - 1]);
             buffer[idx] += block_sums[blockIdx.x - 1];
         __syncthreads();
     }
