@@ -26,8 +26,15 @@ template <typename T>
 __global__
 void kernel_your_scan(raft::device_span<T> buffer)
 {
-    // TODO
-    // ...
+    int tid = threadIdx.x;
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+    for (int i = 1; i < buffer.size(); i*=2) {
+        if (tid >= i) {
+            buffer[idx] += buffer[idx - i];
+        }
+        __syncthreads();
+    }
 }
 
 void your_scan(rmm::device_uvector<int>& buffer)
