@@ -128,10 +128,7 @@ void kernel_your_scan_dispatcher(raft::device_span<const T> block_sums, raft::de
     unsigned int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (idx < buffer.size()) {
-        if (idx + blockDim.x < buffer.size())
-            sdata[tid] = buffer[idx] + buffer[idx + blockDim.x];
-        else
-            sdata[tid] = buffer[idx];
+        sdata[tid] = buffer[idx];
     }
     else
         sdata[tid] = 0;
@@ -139,15 +136,15 @@ void kernel_your_scan_dispatcher(raft::device_span<const T> block_sums, raft::de
     for (int i = 1; i < buffer.size(); i*=2) {
         T val = 0;
         if (tid >= i) {
-            val = buffer[idx - i];
+            val = sdata[tid - i];
         }
         __syncthreads();
 
-        buffer[idx] += val;
+        sdata[tid] += val;
         __syncthreads();
 
         if (blockIdx.x > 0)
-            buffer[idx] += block_sums[blockIdx.x - 1];
+            sdata[tid] += block_sums[blockIdx.x - 1];
         __syncthreads();
     }
 }
