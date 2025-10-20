@@ -29,12 +29,19 @@ void baseline_reduce(rmm::device_uvector<int>& buffer,
 template <typename BLOCK_SIZE>
 __device__
 void warp_reduce(int *sdata, int tid) {
-    if (BLOCK_SIZE >= 64) {sdata[tid ]+= sdata[tid + 32]; __syncthreads();}
-    if (BLOCK_SIZE >= 32) {sdata[tid ]+= sdata[tid + 16]; __syncthreads();}
-    if (BLOCK_SIZE >= 16) {sdata[tid ]+= sdata[tid + 8]; __syncthreads();}
-    if (BLOCK_SIZE >= 8)  {sdata[tid ]+= sdata[tid + 4]; __syncthreads();}
-    if (BLOCK_SIZE >= 4)  {sdata[tid ]+= sdata[tid + 2]; __syncthreads();}
-    if (BLOCK_SIZE >= 2)  {sdata[tid ]+= sdata[tid + 1]; __syncthreads();}
+    if (BLOCK_SIZE >= 64) {
+        sdata[tid] += sdata[tid + 32];
+        __syncthreads();
+    }
+    if (BLOCK_SIZE >= 32)
+    {
+        sdata[tid] += sdata[tid + 16];
+        __syncthreads();
+    }
+    if (BLOCK_SIZE >= 16) {sdata[tid] += sdata[tid + 8]; __syncthreads();}
+    if (BLOCK_SIZE >= 8)  {sdata[tid] += sdata[tid + 4]; __syncthreads();}
+    if (BLOCK_SIZE >= 4)  {sdata[tid] += sdata[tid + 2]; __syncthreads();}
+    if (BLOCK_SIZE >= 2)  {sdata[tid] += sdata[tid + 1]; __syncthreads();}
 }
 
 template <typename T, int BLOCK_SIZE>
