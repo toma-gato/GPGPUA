@@ -143,12 +143,15 @@ void kernel_your_scan_dispatcher(raft::device_span<const T> block_sums, raft::de
         sdata[tid] += val;
         __syncthreads();
 
-        if (blockIdx.x > 0)
+        if (blockIdx.x > 0 && tid >= i)
             if (tid == 0)
                 printf("before adding block sum: thread %d block %d: %d\n", tid, blockIdx.x, sdata[tid]);
+            
             sdata[tid] += block_sums[blockIdx.x - 1];
+            
             if (tid == 0)
                 printf("after adding block sum: thread %d block %d: %d\n", tid, blockIdx.x, sdata[tid]);
+        
         __syncthreads();
     }
 
