@@ -45,7 +45,7 @@ void your_scan(rmm::device_uvector<int>& buffer)
     // TODO
     // ...
 
-	kernel_your_scan<int><<<1, 1, 0, buffer.stream()>>>(
+	kernel_your_scan<int><<<1, 64, 0, buffer.stream()>>>(
         raft::device_span<int>(buffer.data(), buffer.size()));
 
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
