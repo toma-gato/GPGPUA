@@ -29,7 +29,7 @@ int main(int argc, char** argv)
         // Finally the true sizes
         // TODO
         constexpr std::array sizes = {
-            64
+            64,
             63,
             128,
             524288,
