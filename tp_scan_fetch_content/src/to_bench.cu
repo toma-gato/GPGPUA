@@ -108,6 +108,9 @@ void kernel_your_scan(raft::device_span<T> buffer)
         buffer[idx] += val;
         __syncthreads();
     }
+
+    if (tid == 0)
+        printf("thread %d: %d\n", tid, buffer[idx]);
 }
 
 template <typename T>
