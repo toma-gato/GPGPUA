@@ -26,7 +26,7 @@ void baseline_reduce(rmm::device_uvector<int>& buffer,
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 }
 
-template <typename BLOCK_SIZE>
+template<int BLOCK_SIZE>
 __device__
 void warp_reduce(int *sdata, int tid) {
     if (BLOCK_SIZE >= 64) {
