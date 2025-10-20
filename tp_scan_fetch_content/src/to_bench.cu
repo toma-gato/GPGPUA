@@ -24,12 +24,22 @@ void baseline_scan(rmm::device_uvector<int>& buffer)
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 }
 
-inline __device__ int warp_reduce(int val) {
-    #pragma unroll
-    for (int offset = warpSize / 2; offset > 0; offset /= 2) {
-        val += __shfl_down_sync(~0, val, offset);
+template<int BLOCK_SIZE>
+__device__
+void warp_reduce(int *sdata, int tid) {
+    if (BLOCK_SIZE >= 64) {
+        sdata[tid] += sdata[tid + 32];
+        __syncthreads();
     }
-    return val;
+    if (BLOCK_SIZE >= 32)
+    {
+        sdata[tid] += sdata[tid + 16];
+        __syncthreads();
+    }
+    if (BLOCK_SIZE >= 16) {sdata[tid] += sdata[tid + 8]; __syncthreads();}
+    if (BLOCK_SIZE >= 8)  {sdata[tid] += sdata[tid + 4]; __syncthreads();}
+    if (BLOCK_SIZE >= 4)  {sdata[tid] += sdata[tid + 2]; __syncthreads();}
+    if (BLOCK_SIZE >= 2)  {sdata[tid] += sdata[tid + 1]; __syncthreads();}
 }
 
 template <typename T, int BLOCK_SIZE>
@@ -73,18 +83,12 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
             sdata[tid] += sdata[tid + 64];
         __syncthreads();
     }
-    if constexpr (BLOCK_SIZE >= 64) {
-        if (tid < 32)
-            sdata[tid] += sdata[tid + 32];
-        __syncthreads();
-    }
 
     if (tid < 32)
-        sdata[tid] += warp_reduce(sdata[tid]);
+        warp_reduce<BLOCK_SIZE>(sdata, tid);
 
-    if (tid == 0) total[blockIdx.x] = sum;
+    if (tid == 0) total[blockIdx.x] = sdata[0];
 }
-
 
 template <typename T>
 __global__
@@ -106,19 +110,42 @@ void kernel_your_scan(raft::device_span<T> buffer)
     }
 }
 
+template <typename T>
+__global__
+void kernel_your_scan_dispatcher(raft::device_span<const T> block_sums, raft::device_span<T> buffer)
+{
+    unsigned int tid = threadIdx.x;
+    unsigned int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+    for (int i = 1; i < block_sums.size(); i*=2) {
+        T val = 0;
+        if (tid >= i) {
+            val = block_sums[blockIdx.x - i];
+        }
+        __syncthreads();
+
+        if (idx < buffer.size())
+            buffer[idx] += val;
+        __syncthreads();
+    }
+}
+
 void your_scan(rmm::device_uvector<int>& buffer)
 {
     // TODO
-    // rmm::device_uvector<int> tmp(2, buffer.stream());
+    rmm::device_uvector<int> tmp(2, buffer.stream());
 
-    // kernel_your_reduce<int, 64><<<2, 64, 0, buffer.stream()>>>(
-    //     raft::device_span<const int>(buffer.data(), buffer.size()),
-    //     raft::device_span<int>(tmp.data(), 1));
+    kernel_your_reduce<int, 64><<<2, 64, 0, buffer.stream()>>>(
+         raft::device_span<const int>(buffer.data(), buffer.size()),
+         raft::device_span<int>(tmp.data(), 1));
 
-	kernel_your_scan<int><<<1, 64, 0, buffer.stream()>>>(
+	kernel_your_scan<int><<<1, 2, 0, buffer.stream()>>>(
         raft::device_span<int>(buffer.data(), buffer.size()));
-
     
+    kernel_your_scan_dispatcher<int><<<2, 64, 0, buffer.stream()>>>(
+        raft::device_span<const int(tmp.data(), 1)>,
+        raft::device_span<int>(buffer.data(), buffer.size())
+    )
 
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 }
