@@ -143,7 +143,7 @@ void your_scan(rmm::device_uvector<int>& buffer)
     // TODO
     rmm::device_uvector<int> tmp(2, buffer.stream());
 
-    kernel_your_reduce<int, 64><<<2, 64, 1024, buffer.stream()>>>(
+    kernel_your_reduce<int, 32><<<2, 32, 1024, buffer.stream()>>>(
          raft::device_span<const int>(buffer.data(), buffer.size()),
          raft::device_span<int>(tmp.data(), 1));
     
