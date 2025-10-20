@@ -144,7 +144,7 @@ void your_scan(rmm::device_uvector<int>& buffer)
          raft::device_span<const int>(buffer.data(), buffer.size()),
          raft::device_span<int>(tmp.data(), 1));
 
-    printf("After reduce: [%d, %d]\n", tmp.data()[0], tmp.data()[1]);
+    printf("After reduce: [%d, %d]\n", tmp[0], tmp[1]);
     
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 
