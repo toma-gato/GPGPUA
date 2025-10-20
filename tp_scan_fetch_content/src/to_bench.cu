@@ -112,10 +112,10 @@ void kernel_your_scan(raft::device_span<T> buffer)
         __syncthreads();
     }
 
-    if (tid == 0)
-        printf("thread %d: %d\n", tid, buffer[idx]);
-    if (tid == 1)
-        printf("thread %d: %d\n", tid, buffer[idx]);
+    // if (tid == 0)
+    //     printf("thread %d: %d\n", tid, buffer[idx]);
+    // if (tid == 1)
+    //     printf("thread %d: %d\n", tid, buffer[idx]);
 }
 
 template <typename T>
@@ -128,8 +128,11 @@ void kernel_your_scan_dispatcher(raft::device_span<const T> block_sums, raft::de
     for (int i = 1; i < block_sums.size(); i*=2) {
         T val = 0;
         if (tid >= i) {
-            val = buffer[idx];
+            val = buffer[idx - i];
         }
+        __syncthreads();
+
+        buffer[idx] += val;
         __syncthreads();
 
         if (blockIdx.x > 0)
