@@ -120,12 +120,12 @@ void kernel_your_scan_dispatcher(raft::device_span<const T> block_sums, raft::de
     for (int i = 1; i < block_sums.size(); i*=2) {
         T val = 0;
         if (tid >= i) {
-            val = block_sums[blockIdx.x - i];
+            val = buffer[idx]
         }
         __syncthreads();
 
-        if (idx < buffer.size())
-            buffer[idx] += val;
+        if (blockIdx.x > 0)
+            buffer[idx] += block_sums[blockIdx.x - 1];
         __syncthreads();
     }
 }
