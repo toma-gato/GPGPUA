@@ -125,7 +125,7 @@ void kernel_your_scan_dispatcher(raft::device_span<const T> block_sums, raft::de
     unsigned int tid = threadIdx.x;
     unsigned int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
-    for (int i = 1; i < block_sums.size(); i*=2) {
+    for (int i = 1; i < buffer.size(); i*=2) {
         T val = 0;
         if (tid >= i) {
             val = buffer[idx - i];
