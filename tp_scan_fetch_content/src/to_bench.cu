@@ -147,6 +147,10 @@ void kernel_your_scan_dispatcher(raft::device_span<const T> block_sums, raft::de
             sdata[tid] += block_sums[blockIdx.x - 1];
         __syncthreads();
     }
+
+    if (idx < buffer.size()) {
+        buffer[idx] = sdata[tid];
+    }
 }
 
 void your_scan(rmm::device_uvector<int>& buffer)
