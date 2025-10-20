@@ -103,9 +103,8 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
         __syncthreads();
     }
 
-    int sum = 0;
     if (tid < 32)
-        sum += warp_reduce(sdata[tid]);
+        sdata[tid] += warp_reduce(sdata[tid]);
 
     if (tid == 0) total[blockIdx.x] = sum;
 }
