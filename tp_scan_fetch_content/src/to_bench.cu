@@ -122,8 +122,19 @@ template <typename T>
 __global__
 void kernel_your_scan_dispatcher(raft::device_span<const T> block_sums, raft::device_span<T> buffer)
 {
+    extern __shared__ T sdata[];
+
     unsigned int tid = threadIdx.x;
     unsigned int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (idx < buffer.size()) {
+        if (idx + blockDim.x < buffer.size())
+            sdata[tid] = buffer[idx] + buffer[idx + blockDim.x];
+        else
+            sdata[tid] = buffer[idx];
+    }
+    else
+        sdata[tid] = 0;
 
     for (int i = 1; i < buffer.size(); i*=2) {
         T val = 0;
@@ -135,7 +146,7 @@ void kernel_your_scan_dispatcher(raft::device_span<const T> block_sums, raft::de
         buffer[idx] += val;
         __syncthreads();
 
-        if (blockIdx.x > 0 && tid == 0)
+        if (blockIdx.x > 0)
             buffer[idx] += block_sums[blockIdx.x - 1];
         __syncthreads();
     }
@@ -157,7 +168,7 @@ void your_scan(rmm::device_uvector<int>& buffer)
 
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
     
-    kernel_your_scan_dispatcher<int><<<2, 64, 0, buffer.stream()>>>(
+    kernel_your_scan_dispatcher<int><<<2, 64, 1024, buffer.stream()>>>(
         raft::device_span<const int>(tmp.data(), 1),
         raft::device_span<int>(buffer.data(), buffer.size())
     );
