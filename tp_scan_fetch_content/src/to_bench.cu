@@ -88,6 +88,9 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
         warp_reduce<BLOCK_SIZE>(sdata, tid);
 
     if (tid == 0) total[blockIdx.x] = sdata[0];
+
+    if (tid == 0)
+        printf("block %d: %d\n", blockIdx.x, sdata[0]);
 }
 
 template <typename T>
@@ -143,8 +146,6 @@ void your_scan(rmm::device_uvector<int>& buffer)
     kernel_your_reduce<int, 64><<<2, 64, 1024, buffer.stream()>>>(
          raft::device_span<const int>(buffer.data(), buffer.size()),
          raft::device_span<int>(tmp.data(), 1));
-
-    printf("After reduce: [%d, %d]\n", tmp[0], tmp[1]);
     
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 
