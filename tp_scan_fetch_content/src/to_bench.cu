@@ -111,6 +111,8 @@ void kernel_your_scan(raft::device_span<T> buffer)
 
     if (tid == 0)
         printf("thread %d: %d\n", tid, buffer[idx]);
+    if (tid == 2)
+        printf("thread %d: %d\n", tid, buffer[idx]);
 }
 
 template <typename T>
@@ -141,6 +143,8 @@ void your_scan(rmm::device_uvector<int>& buffer)
     kernel_your_reduce<int, 64><<<2, 64, 1024, buffer.stream()>>>(
          raft::device_span<const int>(buffer.data(), buffer.size()),
          raft::device_span<int>(tmp.data(), 1));
+
+    printf("After reduce: [%d, %d]\n", tmp.data()[0], tmp.data()[1]);
     
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 
