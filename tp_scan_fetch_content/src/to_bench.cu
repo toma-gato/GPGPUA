@@ -6,6 +6,8 @@
 
 #include <rmm/device_uvector.hpp>
 
+#include <rmm/device_scalar.hpp>
+
 template <typename T>
 __global__
 void kernel_scan_baseline(raft::device_span<T> buffer)
