@@ -29,9 +29,6 @@ void kernel_your_scan(raft::device_span<T> buffer)
     int tid = threadIdx.x;
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
-    if (tid == 0) printf("Buffer 0: %d\n", buffer[idx]);
-    if (tid == 1) printf("Buffer 1: %d\n", buffer[idx]);
-
     for (int i = 1; i < buffer.size(); i*=2) {
         if (tid >= i) {
             buffer[idx] += buffer[idx - i];
