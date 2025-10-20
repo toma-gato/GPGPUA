@@ -89,8 +89,8 @@ void kernel_your_reduce(raft::device_span<const T> buffer, raft::device_span<T> 
 
     if (tid == 0) total[blockIdx.x] = sdata[0];
 
-    if (tid == 0)
-        printf("block %d: %d\n", blockIdx.x, sdata[0]);
+    // if (tid == 0)
+    //     printf("block %d: %d\n", blockIdx.x, sdata[0]);
 }
 
 template <typename T>
@@ -114,7 +114,7 @@ void kernel_your_scan(raft::device_span<T> buffer)
 
     if (tid == 0)
         printf("thread %d: %d\n", tid, buffer[idx]);
-    if (tid == 2)
+    if (tid == 1)
         printf("thread %d: %d\n", tid, buffer[idx]);
 }
 
@@ -150,7 +150,7 @@ void your_scan(rmm::device_uvector<int>& buffer)
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 
 	kernel_your_scan<int><<<1, 2, 0, buffer.stream()>>>(
-        raft::device_span<int>(buffer.data(), buffer.size()));
+        raft::device_span<int>(tmp.data(), tmp.size()));
 
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
     
