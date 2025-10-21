@@ -167,7 +167,7 @@ void your_scan(rmm::device_uvector<int>& buffer)
 
     kernel_your_reduce<int, 32><<<2, 32, 1024, buffer.stream()>>>(
          raft::device_span<const int>(buffer.data(), buffer.size()),
-         raft::device_span<int>(tmp.data(), 1));
+         raft::device_span<int>(tmp.data(), tmp.size());
     
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 
@@ -177,7 +177,7 @@ void your_scan(rmm::device_uvector<int>& buffer)
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
     
     kernel_your_scan_dispatcher<int><<<2, 64, 1024, buffer.stream()>>>(
-        raft::device_span<const int>(tmp.data(), 1),
+        raft::device_span<const int>(tmp.data(), tmp.size()),
         raft::device_span<int>(buffer.data(), buffer.size())
     );
 
