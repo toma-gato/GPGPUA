@@ -3,7 +3,7 @@
 #include <cub/cub.cuh>
 #include <raft/core/device_span.hpp>
 
-void remove_garbage(aft::device_span<int> buffer)
+void remove_garbage(raft::device_span<int> buffer)
 {
     const int garbage_val = -27;
     size_t n = buffer.size();
