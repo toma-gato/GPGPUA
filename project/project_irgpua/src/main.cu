@@ -50,28 +50,28 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // You must get the image from the pipeline as they arrive and launch computations right away
         // There are still ways to speeds this process of course
 
-        images[i] = pipeline.get_image(i);
-        size_t elems = static_cast<size_t>(images[i].size());
-    
-        // Allocation GPU via RMM (device_uvector)
-        rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
-    
-        // Copie CPU -> GPU
-        cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
-    
-        fix_image_gpu_indus(d_buf);
-    
-        // Copie GPU -> CPU
-        cudaMemcpyAsync(images[i].buffer, d_buf.data(), elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
-    
-        // Synchronisation stream pour s'assurer que tout est terminé
-        cudaStreamSynchronize(rmm::cuda_stream_default);
-
-        // VERSION CPU
         // images[i] = pipeline.get_image(i);
         // size_t elems = static_cast<size_t>(images[i].size());
+    
+        // // Allocation GPU via RMM (device_uvector)
+        // rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
+    
+        // // Copie CPU -> GPU
+        // cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+    
+        // fix_image_gpu_indus(d_buf);
+    
+        // // Copie GPU -> CPU
+        // cudaMemcpyAsync(images[i].buffer, d_buf.data(), elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
+    
+        // // Synchronisation stream pour s'assurer que tout est terminé
+        // cudaStreamSynchronize(rmm::cuda_stream_default);
 
-        // fix_image_cpu(images[i]);
+        // VERSION CPU
+        images[i] = pipeline.get_image(i);
+        size_t elems = static_cast<size_t>(images[i].size());
+
+        fix_image_cpu(images[i]);
     }
 
     std::cout << "Done with compute, starting stats" << std::endl;
