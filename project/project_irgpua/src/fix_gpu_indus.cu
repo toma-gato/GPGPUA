@@ -69,7 +69,7 @@ void apply_pattern_treatment(rmm::device_uvector<int> &buffer)
     int num_blocks = (n + threads_per_block - 1) / threads_per_block;
     
     apply_pattern_kernel_optimized<<<num_blocks, threads_per_block, 0, stream>>>(
-        buffer.data(), n
+        raft::device_span<int>(buffer.data(), buffer.size()), n
     );
     
     CUDA_CHECK_ERROR(cudaGetLastError());
@@ -82,6 +82,6 @@ void fix_image_gpu_indus(rmm::device_uvector<int> &buffer)
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 
     apply_pattern_treatment(buffer);
-    
+
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 }
