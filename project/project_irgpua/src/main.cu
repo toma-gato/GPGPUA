@@ -57,6 +57,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             if (images[i].buffer[j] == -27)
                 error += 1;
         }
+
+        printf("Image %d has %d errors before fix\n", i, error);
     
         // Allocation GPU via RMM (device_uvector)
         rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
@@ -79,7 +81,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
                 error += 1;
         }
 
-        printf("Image %d has %d errors\n", images[i].to_sort.id, error);
+        printf("Image %d has %d errors\n", i, error);
     
         //fix_image_cpu(images[i]);
     }
