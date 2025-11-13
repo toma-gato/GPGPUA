@@ -20,6 +20,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     auto start = std::chrono::high_resolution_clock::now();
 
+    #ifdef USE_GPU
+        std::cout << "Using GPU..." << std::endl;
+    #else
+        std::cout << "Using CPU..." << std::endl;
+    #endif
+
     std::cout << "File loading..." << std::endl;
 
     // - Get file paths
@@ -44,50 +50,23 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     std::cout << "Done, starting compute" << std::endl;
 
     #ifdef USE_GPU
-
-        const int num_streams = 4;
-        std::vector<cudaStream_t> streams(num_streams);
-        std::vector<cudaEvent_t> events(nb_images);
-
-        for (int i = 0; i < num_streams; ++i)
-        {
-            cudaStreamCreate(&streams[i]);
-        }
-
-        for (int i = 0; i < nb_images; ++i)
-        {
-            cudaEventCreate(&events[i]);
-        }
-
+    
         #pragma omp parallel for
         for (int i = 0; i < nb_images; ++i)
         {
             images[i] = pipeline.get_image(i);
             size_t elems = static_cast<size_t>(images[i].size());
-
-            cudaStream_t stream = streams[i % num_streams];
-
-            rmm::device_uvector<int> d_buf(elems, stream);
-            cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, stream);
-
-            fix_image_gpu_indus(d_buf, stream);
-
-            size_t new_elems = d_buf.size();
-            cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), cudaMemcpyDeviceToHost, stream);
             
-            cudaEventRecord(events[i], stream);
+            rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
+            cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), 
+                            cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+            fix_image_gpu_indus(d_buf);
+            
+            size_t new_elems = d_buf.size();
+            cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), 
+                            cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
+            cudaStreamSynchronize(rmm::cuda_stream_default);
         }
-
-        for (int i = 0; i < nb_images; ++i)
-        {
-            cudaEventSynchronize(events[i]);
-            cudaEventDestroy(events[i]);
-        }
-        for (auto& stream : streams)
-        {
-            cudaStreamDestroy(stream);
-        }
-
     #else
         #pragma omp parallel for
         for (int i = 0; i < nb_images; ++i)
@@ -157,7 +136,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     auto end = std::chrono::high_resolution_clock::now();
 
     double ms = std::chrono::duration<double, std::milli>(end - start).count();
-    printf("Temps total (CPU + GPU sync): %.3f ms\n", ms);
+    printf("Temps total: %.3f ms\n", ms);
 
     return 0;
 }
