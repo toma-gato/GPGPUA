@@ -75,6 +75,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // Synchronisation stream pour s'assurer que tout est terminé
         cudaStreamSynchronize(rmm::cuda_stream_default);
 
+        fix_image_cpu(images[i]);
+
         error = 0;
         for (int j = 0; j < images[i].size(); ++i) {
             if (images[i].buffer[j] == -27)
@@ -82,8 +84,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         }
 
         printf("Image %d has %d errors\n", i, error);
-    
-        //fix_image_cpu(images[i]);
     }
 
     std::cout << "Done with compute, starting stats" << std::endl;

@@ -34,6 +34,6 @@ void remove_garbage(raft::device_span<int> buffer, cudaStream_t stream)
 
 void fix_image_gpu_indus(rmm::device_uvector<int> &buffer)
 {
-    remove_garbage(raft::device_span<int>(buffer.data(), buffer.size()), buffer.stream());
+    //remove_garbage(raft::device_span<int>(buffer.data(), buffer.size()), buffer.stream());
     CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 }
