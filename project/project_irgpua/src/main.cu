@@ -37,7 +37,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // -- Main loop containing image retring from pipeline and fixing
 
     const int nb_images = pipeline.images.size();
-    std::vector<Image> images(nb_images);
+    std::vector<Image> images_cpu(nb_images);
+    std::vector<Image> images_gpu(nb_images);
 
     // - One CPU thread is launched for each image
 
@@ -54,28 +55,22 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // You must get the image from the pipeline as they arrive and launch computations right away
         // There are still ways to speeds this process of course
 
-        // images[i] = pipeline.get_image(i);
-        // size_t elems = static_cast<size_t>(images[i].size());
-    
-        // // Allocation GPU via RMM (device_uvector)
-        // rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
-    
-        // // Copie CPU -> GPU
-        // cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
-    
-        // fix_image_gpu_indus(d_buf);
-    
-        // // Copie GPU -> CPU
-        // cudaMemcpyAsync(images[i].buffer, d_buf.data(), elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
-    
-        // // Synchronisation stream pour s'assurer que tout est terminé
-        // cudaStreamSynchronize(rmm::cuda_stream_default);
+        Image original = pipeline.get_image(i);
+        size_t elems = static_cast<size_t>(original.size());
 
+        images_cpu[i] = original;
+        images_gpu[i] = original;
+    
+        rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
+        cudaMemcpyAsync(d_buf.data(), images_gpu[i].buffer, elems * sizeof(int), 
+                        cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+        fix_image_gpu_indus(d_buf);
+        cudaMemcpyAsync(images_gpu[i].buffer, d_buf.data(), elems * sizeof(int), 
+                        cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
+        cudaStreamSynchronize(rmm::cuda_stream_default);
+        
         // VERSION CPU
-        images[i] = pipeline.get_image(i);
-        size_t elems = static_cast<size_t>(images[i].size());
-
-        fix_image_cpu(images[i]);
+        fix_image_cpu(images_cpu[i]);
     }
 
     std::cout << "Done with compute, starting stats" << std::endl;
@@ -90,9 +85,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     #pragma omp parallel for
     for (int i = 0; i < nb_images; ++i)
     {
-        auto& image = images[i];
-        const int image_size = image.width * image.height;
-        image.to_sort.total = std::reduce(image.buffer, image.buffer + image_size, 0);
+        auto& image_cpu = images_cpu[i];
+        auto& image_gpu = images_gpu[i];
+        const int image_size = image_cpu.width * image_cpu.height;
+        
+        image_cpu.to_sort.total = std::reduce(image_cpu.buffer, image_cpu.buffer + image_size, 0);
+        image_gpu.to_sort.total = std::reduce(image_gpu.buffer, image_gpu.buffer + image_size, 0);
     }
 
     // - All totals are known, sort images accordingly (OPTIONAL)
@@ -103,9 +101,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // But just like the CPU version, moving the actual images while sorting will be too slow
     using ToSort = Image::ToSort;
     std::vector<ToSort> to_sort(nb_images);
-    std::generate(to_sort.begin(), to_sort.end(), [n = 0, images] () mutable
+    std::generate(to_sort.begin(), to_sort.end(), [n = 0, images_cpu] () mutable
     {
-        return images[n++].to_sort;
+        return images_cpu[n++].to_sort;
+    });
+    std::generate(to_sort.begin(), to_sort.end(), [n = 0, images_gpu] () mutable
+    {
+        return images_gpu[n++].to_sort;
     });
 
     // TODO OPTIONAL : make it GPU compatible (aka faster)
@@ -118,19 +120,26 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // If you did the sorting, check that the ids are in the same order
     for (int i = 0; i < nb_images; ++i)
     {
-        std::cout << "Image #" << images[i].to_sort.id << " total : " << images[i].to_sort.total << std::endl;
+        std::cout << "CPU Image #" << images_cpu[i].to_sort.id << " total : " << images_cpu[i].to_sort.total << std::endl;
+        std::cout << "GPU Image #" << images_gpu[i].to_sort.id << " total : " << images_gpu[i].to_sort.total << std::endl;
         std::ostringstream oss;
-        oss << "Image#" << images[i].to_sort.id << ".pgm";
+        oss << "CPU_Image#" << images_cpu[i].to_sort.id << ".pgm";
         std::string str = oss.str();
-        images[i].write(str);
+        images_cpu[i].write(str);
+
+        oss << "GPU_Image#" << images_gpu[i].to_sort.id << ".pgm";
+        std::string str = oss.str();
+        images_gpu[i].write(str);
     }
 
     std::cout << "Done, the internet is safe now :)" << std::endl;
 
     // Cleaning
     // TODO : Don't forget to update this if you change allocation style
-    for (int i = 0; i < nb_images; ++i)
-        free(images[i].buffer);
+    for (int i = 0; i < nb_images; ++i) {
+        free(images_cpu[i].buffer);
+        free(images_gpu[i].buffer);
+    }
 
     auto end = std::chrono::high_resolution_clock::now();
 
