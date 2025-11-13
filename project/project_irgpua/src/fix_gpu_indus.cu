@@ -3,6 +3,10 @@
 #include <cub/cub.cuh>
 #include <raft/core/device_span.hpp>
 
+struct NotGarbage {
+    __device__ bool operator()(int val) const { return val != -27; }
+};
+
 void remove_garbage(raft::device_span<int> buffer, cudaStream_t stream)
 {
     const int garbage_val = -27;
@@ -13,7 +17,7 @@ void remove_garbage(raft::device_span<int> buffer, cudaStream_t stream)
     void* d_temp_storage = nullptr;
     size_t temp_storage_bytes = 0;
 
-    rmm::device_scalar<int> n_selected(0, stream);
+    rmm::device_uvector<int> n_selected(1, stream);
 
     cub::DeviceSelect::FlaggedIf(
         d_temp_storage, temp_storage_bytes,
