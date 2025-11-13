@@ -6,6 +6,7 @@
 void remove_garbage(raft::device_span<int> buffer, cudaStream_t stream)
 {
     const int garbage_val = -27;
+    size_t n = buffer.size();
 
     rmm::device_uvector<int> temp(n, stream);
 
@@ -18,7 +19,7 @@ void remove_garbage(raft::device_span<int> buffer, cudaStream_t stream)
         d_temp_storage, temp_storage_bytes,
         buffer.data(), temp.data(),
         n_selected.data(),
-        buffer.size(),
+        n,
         NotGarbage()
     );
 
