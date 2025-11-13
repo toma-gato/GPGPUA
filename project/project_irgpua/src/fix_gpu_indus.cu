@@ -194,9 +194,7 @@ void histogram_equalization_gpu(rmm::device_uvector<int> &buffer)
                     cumulative_histo.data() + first_nonzero_idx, 
                     sizeof(int), cudaMemcpyDeviceToDevice, stream);
     int cdf_min = d_cdf_min_value.element(0, stream);
-    
-    printf("CDF min: %d (at index %d)\n", cdf_min, first_nonzero_idx);
-    
+        
     // Étape 4 : Appliquer la transformation d'égalisation
     threads = 256;
     blocks = (n + threads - 1) / threads;
