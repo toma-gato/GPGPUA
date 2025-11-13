@@ -83,7 +83,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             cudaEventSynchronize(events[i]);
             cudaEventDestroy(events[i]);
         }
-        for (int i = 0; i < num_streams; ++i)
+        for (auto& stream : streams)
         {
             cudaStreamDestroy(stream);
         }
