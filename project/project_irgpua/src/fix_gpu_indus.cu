@@ -38,6 +38,8 @@ void remove_garbage(rmm::device_uvector<int> &buffer)
         stream
     );
     
+    int num_selected = n_selected.element(0, stream);
+    
     cudaMemcpyAsync(buffer.data(), temp.data(), num_selected * sizeof(int), 
                     cudaMemcpyDeviceToDevice, stream);
     cudaStreamSynchronize(stream);
