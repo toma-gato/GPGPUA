@@ -78,7 +78,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
                         cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
         cudaStreamSynchronize(rmm::cuda_stream_default);
         
-        original.resize(new_elems);
         images_gpu[i] = std::move(original);
         
         // VERSION CPU (sur la copie)
