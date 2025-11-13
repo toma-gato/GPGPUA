@@ -1,0 +1,1098 @@
+
+---
+events:
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineSystem.cmake:12 (find_program)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_UNAME"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "uname"
+    candidate_directories:
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/usr/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+      - "/bin/"
+    searched_directories:
+      - "/opt/cuda/bin/uname"
+      - "/home/toma/.local/bin/uname"
+      - "/usr/local/bin/uname"
+    found: "/usr/bin/uname"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineSystem.cmake:212 (message)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      The system is: Linux - 5.10.244-1-MANJARO - x86_64
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeUnixFindMake.cmake:5 (find_program)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_MAKE_PROGRAM"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "gmake"
+      - "make"
+      - "smake"
+    candidate_directories:
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/usr/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    searched_directories:
+      - "/opt/cuda/bin/gmake"
+      - "/home/toma/.local/bin/gmake"
+      - "/usr/local/bin/gmake"
+      - "/usr/bin/gmake"
+      - "/var/lib/snapd/snap/bin/gmake"
+      - "/usr/local/sbin/gmake"
+      - "/var/lib/flatpak/exports/bin/gmake"
+      - "/usr/lib/jvm/default/bin/gmake"
+      - "/usr/bin/site_perl/gmake"
+      - "/usr/bin/vendor_perl/gmake"
+      - "/usr/bin/core_perl/gmake"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/gmake"
+      - "/opt/apache-maven-3.9.8/bin/gmake"
+      - "/opt/cuda/bin/make"
+      - "/home/toma/.local/bin/make"
+      - "/usr/local/bin/make"
+    found: "/usr/bin/make"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompiler.cmake:73 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:69 (_cmake_find_compiler)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_CXX_COMPILER"
+    description: "CXX compiler"
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "c++"
+      - "CC"
+      - "g++"
+      - "aCC"
+      - "cl"
+      - "bcc"
+      - "xlC"
+      - "icpx"
+      - "icx"
+      - "clang++"
+    candidate_directories:
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/usr/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    searched_directories:
+      - "/opt/cuda/bin/c++"
+      - "/home/toma/.local/bin/c++"
+      - "/usr/local/bin/c++"
+    found: "/usr/bin/c++"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:462 (find_file)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:500 (CMAKE_DETERMINE_COMPILER_ID_WRITE)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:8 (CMAKE_DETERMINE_COMPILER_ID_BUILD)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "file"
+    variable: "src_in"
+    description: "Path to a file."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "CMakeCXXCompilerId.cpp.in"
+    candidate_directories:
+      - "/usr/share/cmake/Modules/"
+    found: "/usr/share/cmake/Modules/CMakeCXXCompilerId.cpp.in"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: /usr/bin/c++ 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+      
+      The CXX compiler identification is GNU, found in:
+        /home/toma/ING3/IRGPUA/project/project_irgpua/build/CMakeFiles/4.1.1/CompilerIdCXX/a.out
+      
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_AR"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "ar"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    found: "/usr/bin/ar"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_RANLIB"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "ranlib"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    found: "/usr/bin/ranlib"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_STRIP"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "strip"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    found: "/usr/bin/strip"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_LINKER"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "ld"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    found: "/usr/bin/ld"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_NM"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "nm"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    found: "/usr/bin/nm"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_OBJDUMP"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "objdump"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    found: "/usr/bin/objdump"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_OBJCOPY"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "objcopy"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    found: "/usr/bin/objcopy"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_READELF"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "readelf"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    found: "/usr/bin/readelf"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_DLLTOOL"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "dlltool"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    searched_directories:
+      - "/usr/bin/dlltool"
+      - "/opt/cuda/bin/dlltool"
+      - "/home/toma/.local/bin/dlltool"
+      - "/usr/local/bin/dlltool"
+      - "/var/lib/snapd/snap/bin/dlltool"
+      - "/usr/local/sbin/dlltool"
+      - "/var/lib/flatpak/exports/bin/dlltool"
+      - "/usr/lib/jvm/default/bin/dlltool"
+      - "/usr/bin/site_perl/dlltool"
+      - "/usr/bin/vendor_perl/dlltool"
+      - "/usr/bin/core_perl/dlltool"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/dlltool"
+      - "/opt/apache-maven-3.9.8/bin/dlltool"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_ADDR2LINE"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "addr2line"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    found: "/usr/bin/addr2line"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_TAPI"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "tapi"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    searched_directories:
+      - "/usr/bin/tapi"
+      - "/opt/cuda/bin/tapi"
+      - "/home/toma/.local/bin/tapi"
+      - "/usr/local/bin/tapi"
+      - "/var/lib/snapd/snap/bin/tapi"
+      - "/usr/local/sbin/tapi"
+      - "/var/lib/flatpak/exports/bin/tapi"
+      - "/usr/lib/jvm/default/bin/tapi"
+      - "/usr/bin/site_perl/tapi"
+      - "/usr/bin/vendor_perl/tapi"
+      - "/usr/bin/core_perl/tapi"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/tapi"
+      - "/opt/apache-maven-3.9.8/bin/tapi"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Compiler/GNU-FindBinUtils.cmake:18 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:207 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_CXX_COMPILER_AR"
+    description: "A wrapper around 'ar' adding the appropriate '--plugin' option for the GCC compiler"
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "gcc-ar-15.2"
+      - "gcc-ar-15"
+      - "gcc-ar15"
+      - "gcc-ar"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    searched_directories:
+      - "/usr/bin/gcc-ar-15.2"
+      - "/opt/cuda/bin/gcc-ar-15.2"
+      - "/home/toma/.local/bin/gcc-ar-15.2"
+      - "/usr/local/bin/gcc-ar-15.2"
+      - "/var/lib/snapd/snap/bin/gcc-ar-15.2"
+      - "/usr/local/sbin/gcc-ar-15.2"
+      - "/var/lib/flatpak/exports/bin/gcc-ar-15.2"
+      - "/usr/lib/jvm/default/bin/gcc-ar-15.2"
+      - "/usr/bin/site_perl/gcc-ar-15.2"
+      - "/usr/bin/vendor_perl/gcc-ar-15.2"
+      - "/usr/bin/core_perl/gcc-ar-15.2"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/gcc-ar-15.2"
+      - "/opt/apache-maven-3.9.8/bin/gcc-ar-15.2"
+      - "/usr/bin/gcc-ar-15"
+      - "/opt/cuda/bin/gcc-ar-15"
+      - "/home/toma/.local/bin/gcc-ar-15"
+      - "/usr/local/bin/gcc-ar-15"
+      - "/var/lib/snapd/snap/bin/gcc-ar-15"
+      - "/usr/local/sbin/gcc-ar-15"
+      - "/var/lib/flatpak/exports/bin/gcc-ar-15"
+      - "/usr/lib/jvm/default/bin/gcc-ar-15"
+      - "/usr/bin/site_perl/gcc-ar-15"
+      - "/usr/bin/vendor_perl/gcc-ar-15"
+      - "/usr/bin/core_perl/gcc-ar-15"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/gcc-ar-15"
+      - "/opt/apache-maven-3.9.8/bin/gcc-ar-15"
+      - "/usr/bin/gcc-ar15"
+      - "/opt/cuda/bin/gcc-ar15"
+      - "/home/toma/.local/bin/gcc-ar15"
+      - "/usr/local/bin/gcc-ar15"
+      - "/var/lib/snapd/snap/bin/gcc-ar15"
+      - "/usr/local/sbin/gcc-ar15"
+      - "/var/lib/flatpak/exports/bin/gcc-ar15"
+      - "/usr/lib/jvm/default/bin/gcc-ar15"
+      - "/usr/bin/site_perl/gcc-ar15"
+      - "/usr/bin/vendor_perl/gcc-ar15"
+      - "/usr/bin/core_perl/gcc-ar15"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/gcc-ar15"
+      - "/opt/apache-maven-3.9.8/bin/gcc-ar15"
+    found: "/usr/bin/gcc-ar"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Compiler/GNU-FindBinUtils.cmake:30 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:207 (include)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_CXX_COMPILER_RANLIB"
+    description: "A wrapper around 'ranlib' adding the appropriate '--plugin' option for the GCC compiler"
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "gcc-ranlib-15.2"
+      - "gcc-ranlib-15"
+      - "gcc-ranlib15"
+      - "gcc-ranlib"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/cuda/bin/"
+      - "/home/toma/.local/bin/"
+      - "/usr/local/bin/"
+      - "/var/lib/snapd/snap/bin/"
+      - "/usr/local/sbin/"
+      - "/var/lib/flatpak/exports/bin/"
+      - "/usr/lib/jvm/default/bin/"
+      - "/usr/bin/site_perl/"
+      - "/usr/bin/vendor_perl/"
+      - "/usr/bin/core_perl/"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/"
+      - "/opt/apache-maven-3.9.8/bin/"
+    searched_directories:
+      - "/usr/bin/gcc-ranlib-15.2"
+      - "/opt/cuda/bin/gcc-ranlib-15.2"
+      - "/home/toma/.local/bin/gcc-ranlib-15.2"
+      - "/usr/local/bin/gcc-ranlib-15.2"
+      - "/var/lib/snapd/snap/bin/gcc-ranlib-15.2"
+      - "/usr/local/sbin/gcc-ranlib-15.2"
+      - "/var/lib/flatpak/exports/bin/gcc-ranlib-15.2"
+      - "/usr/lib/jvm/default/bin/gcc-ranlib-15.2"
+      - "/usr/bin/site_perl/gcc-ranlib-15.2"
+      - "/usr/bin/vendor_perl/gcc-ranlib-15.2"
+      - "/usr/bin/core_perl/gcc-ranlib-15.2"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/gcc-ranlib-15.2"
+      - "/opt/apache-maven-3.9.8/bin/gcc-ranlib-15.2"
+      - "/usr/bin/gcc-ranlib-15"
+      - "/opt/cuda/bin/gcc-ranlib-15"
+      - "/home/toma/.local/bin/gcc-ranlib-15"
+      - "/usr/local/bin/gcc-ranlib-15"
+      - "/var/lib/snapd/snap/bin/gcc-ranlib-15"
+      - "/usr/local/sbin/gcc-ranlib-15"
+      - "/var/lib/flatpak/exports/bin/gcc-ranlib-15"
+      - "/usr/lib/jvm/default/bin/gcc-ranlib-15"
+      - "/usr/bin/site_perl/gcc-ranlib-15"
+      - "/usr/bin/vendor_perl/gcc-ranlib-15"
+      - "/usr/bin/core_perl/gcc-ranlib-15"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/gcc-ranlib-15"
+      - "/opt/apache-maven-3.9.8/bin/gcc-ranlib-15"
+      - "/usr/bin/gcc-ranlib15"
+      - "/opt/cuda/bin/gcc-ranlib15"
+      - "/home/toma/.local/bin/gcc-ranlib15"
+      - "/usr/local/bin/gcc-ranlib15"
+      - "/var/lib/snapd/snap/bin/gcc-ranlib15"
+      - "/usr/local/sbin/gcc-ranlib15"
+      - "/var/lib/flatpak/exports/bin/gcc-ranlib15"
+      - "/usr/lib/jvm/default/bin/gcc-ranlib15"
+      - "/usr/bin/site_perl/gcc-ranlib15"
+      - "/usr/bin/vendor_perl/gcc-ranlib15"
+      - "/usr/bin/core_perl/gcc-ranlib15"
+      - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand/gcc-ranlib15"
+      - "/opt/apache-maven-3.9.8/bin/gcc-ranlib15"
+    found: "/usr/bin/gcc-ranlib"
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompiler.cmake:54 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCUDACompiler.cmake:38 (_cmake_find_compiler)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "CMAKE_CUDA_COMPILER"
+    description: "CUDA compiler"
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "nvcc"
+    candidate_directories:
+      - "/usr/bin/"
+    searched_directories:
+      - "/usr/bin/nvcc"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:1303 (message)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCUDACompiler.cmake:98 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Checking whether the CUDA compiler is NVIDIA using "" did not match "nvcc: [^
+      ]+ Cuda compiler driver":
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:1303 (message)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCUDACompiler.cmake:98 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Checking whether the CUDA compiler is Clang using "" did not match "(clang version)":
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CMakeCUDAFindToolkit.cmake:15 (find_program)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCUDACompiler.cmake:108 (cmake_cuda_find_toolkit)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "program"
+    variable: "_CUDA_NVCC_EXECUTABLE"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "nvcc"
+      - "nvcc.exe"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/opt/cuda/bin"
+        - "/home/toma/.local/bin"
+        - "/usr/local/bin"
+        - "/usr/bin"
+        - "/var/lib/snapd/snap/bin"
+        - "/usr/local/sbin"
+        - "/var/lib/flatpak/exports/bin"
+        - "/usr/lib/jvm/default/bin"
+        - "/usr/bin/site_perl"
+        - "/usr/bin/vendor_perl"
+        - "/usr/bin/core_perl"
+        - "/home/toma/.config/Code/User/globalStorage/github.copilot-chat/debugCommand"
+        - "//opt/apache-maven-3.9.8/bin"
+...
