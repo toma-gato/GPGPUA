@@ -51,40 +51,26 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         images[i] = pipeline.get_image(i);
         size_t elems = static_cast<size_t>(images[i].size());
-
-        // int error = 0;
-        // for (size_t j = 0; j < elems; j++) {
-        //     if (images[i].buffer[j] == -27)
-        //         error += 1;
-        // }
-
-        // printf("Image %d has %d errors before fix\n", i, error);
     
-        // // Allocation GPU via RMM (device_uvector)
-        // rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
+        // Allocation GPU via RMM (device_uvector)
+        rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
     
-        // // Copie CPU -> GPU
-        // cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+        // Copie CPU -> GPU
+        cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
     
-        // // Appel de ta fonction GPU (vide pour l'instant)
-        // fix_image_gpu_indus(d_buf);
+        // Appel de ta fonction GPU (vide pour l'instant)
+        fix_image_gpu_indus(d_buf);
     
-        // // Copie GPU -> CPU
-        // cudaMemcpyAsync(images[i].buffer, d_buf.data(), elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
+        // Copie GPU -> CPU
+        cudaMemcpyAsync(images[i].buffer, d_buf.data(), elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
     
-        // // Synchronisation stream pour s'assurer que tout est terminé
-        // cudaStreamSynchronize(rmm::cuda_stream_default);
+        // Synchronisation stream pour s'assurer que tout est terminé
+        cudaStreamSynchronize(rmm::cuda_stream_default);
 
-        fix_image_cpu(images[i]);
+        // images[i] = pipeline.get_image(i);
+        // size_t elems = static_cast<size_t>(images[i].size());
 
-        // int prev_error = error;
-        // error = 0;
-        // for (int j = 0; j < images[i].size() - prev_error; ++i) {
-        //     if (images[i].buffer[j] == -27)
-        //         error += 1;
-        // }
-
-        // printf("Image %d has %d errors\n", i, error);
+        // fix_image_cpu(images[i]);
     }
 
     std::cout << "Done with compute, starting stats" << std::endl;
