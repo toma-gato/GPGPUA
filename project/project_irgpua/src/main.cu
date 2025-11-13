@@ -106,7 +106,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
                                     cudaMemcpyHostToDevice, thread_stream);
 
             // call GPU pipeline (must use d_buf.stream() or the passed stream)
-            fix_image_gpu_indus(d_buf);
+            fix_image_gpu_indus(d_buf, thread_stream);
 
             // async D2H on same stream into pinned host buffer
             cudaMemcpyAsync(host_pinned, d_buf.data(), bytes,
