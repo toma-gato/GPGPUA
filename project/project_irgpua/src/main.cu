@@ -60,8 +60,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), 
                             cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
             cudaStreamSynchronize(rmm::cuda_stream_default);
-            
-            images[i].resize(new_elems);
         }
     #else
         #pragma omp parallel for
