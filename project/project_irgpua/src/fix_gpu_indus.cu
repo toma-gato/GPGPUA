@@ -1,5 +1,7 @@
 #include "fix_gpu_indus.cuh"
 
+#include "cuda_tools/cuda_error_checking.cuh"
+
 #include <cub/cub.cuh>
 #include <raft/core/device_span.hpp>
 
