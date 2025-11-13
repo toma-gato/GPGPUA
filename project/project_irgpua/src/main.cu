@@ -47,9 +47,16 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         const int num_streams = 4;
         std::vector<cudaStream_t> streams(num_streams);
+        std::vector<cudaEvent_t> events(nb_images);
+
         for (int i = 0; i < num_streams; ++i)
         {
             cudaStreamCreate(&streams[i]);
+        }
+
+        for (int i = 0; i < nb_images; ++i)
+        {
+            cudaEventCreate(&events[i]);
         }
 
         #pragma omp parallel for
@@ -68,13 +75,19 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             size_t new_elems = d_buf.size();
             cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), cudaMemcpyDeviceToHost, stream);
             
-            cudaStreamSynchronize(stream);
+            cudaEventRecord(events[i], stream);
         }
 
-        for (auto& stream : streams)
+        for (int i = 0; i < nb_images; ++i)
+        {
+            cudaEventSynchronize(events[i]);
+            cudaEventDestroy(events[i]);
+        }
+        for (int i = 0; i < num_streams; ++i)
         {
             cudaStreamDestroy(stream);
         }
+
     #else
         #pragma omp parallel for
         for (int i = 0; i < nb_images; ++i)
