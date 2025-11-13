@@ -77,11 +77,11 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         fix_image_cpu(images[i]);
 
-        error = 0;
-        for (int j = 0; j < images[i].size(); ++i) {
-            if (images[i].buffer[j] == -27)
-                error += 1;
-        }
+        // error = 0;
+        // for (int j = 0; j < images[i].size(); ++i) {
+        //     if (images[i].buffer[j] == -27)
+        //         error += 1;
+        // }
 
         printf("Image %d has %d errors\n", i, error);
     }
