@@ -38,9 +38,6 @@ void remove_garbage(rmm::device_uvector<int> &buffer)
         stream
     );
     
-    int num_selected = n_selected.element(0, stream);
-    printf("Number of garbage elements removed: %d, should be 19595 for Image #0\n", n - num_selected);
-    
     cudaMemcpyAsync(buffer.data(), temp.data(), num_selected * sizeof(int), 
                     cudaMemcpyDeviceToDevice, stream);
     cudaStreamSynchronize(stream);
