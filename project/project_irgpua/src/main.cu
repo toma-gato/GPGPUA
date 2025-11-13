@@ -44,22 +44,36 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     std::cout << "Done, starting compute" << std::endl;
 
     #ifdef USE_GPU
+
+        const int num_streams = 4;
+        std::vector<cudaStream_t> streams(num_streams);
+        for (int i = 0; i < num_streams; ++i)
+        {
+            cudaStreamCreate(&streams[i]);
+        }
+
         #pragma omp parallel for
         for (int i = 0; i < nb_images; ++i)
         {
             images[i] = pipeline.get_image(i);
             size_t elems = static_cast<size_t>(images[i].size());
-            
-            // VERSION GPU
-            rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
-            cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), 
-                            cudaMemcpyHostToDevice, rmm::cuda_stream_default);
-            fix_image_gpu_indus(d_buf);
-            
+
+            cudaStream_t stream = streams[i % num_streams];
+
+            rmm::device_uvector<int> d_buf(elems, stream);
+            cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, stream);
+
+            fix_image_gpu_indus(d_buf, stream);
+
             size_t new_elems = d_buf.size();
-            cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), 
-                            cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
-            cudaStreamSynchronize(rmm::cuda_stream_default);
+            cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), cudaMemcpyDeviceToHost, stream);
+            
+            cudaStreamSynchronize(stream);
+        }
+
+        for (auto& stream : streams)
+        {
+            cudaStreamDestroy(stream);
         }
     #else
         #pragma omp parallel for
@@ -67,7 +81,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         {
             images[i] = pipeline.get_image(i);
             
-            // VERSION CPU
             fix_image_cpu(images[i]);
         }
     #endif
