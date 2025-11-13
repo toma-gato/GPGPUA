@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.26.4 FATAL_ERROR)
 project(project_irgpua LANGUAGES CXX CUDA)
 
+option(USE_GPU "Use GPU acceleration" ON)
+
 set(RAFT_NVTX ON)
 include(fetch_rapids.cmake)
 include(rapids-cmake)
@@ -26,5 +28,13 @@ set(CUDA_ARCHITECTURES "75")
 include_directories(src)
 
 add_executable(main src/main.cu src/fix_cpu.cu src/fix_gpu.cu src/fix_gpu_indus.cu)
+
+if(USE_GPU)
+    target_compile_definitions(main PRIVATE USE_GPU)
+    message(STATUS "Building with GPU support enabled")
+else()
+    message(STATUS "Building with CPU only")
+endif()
+
 target_compile_options(main PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=${OpenMP_CXX_FLAGS}>)
 target_link_libraries(main PUBLIC OpenMP::OpenMP_CXX rmm::rmm raft::raft)
