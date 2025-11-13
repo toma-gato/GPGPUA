@@ -1,7 +1,7 @@
 #include "image.hh"
 #include "pipeline.hh"
 #include "fix_cpu.cuh"
-#include "fix_image_gpu_indus.cuh"
+#include "fix_gpu_indus.cuh"
 
 #include <vector>
 #include <iostream>
