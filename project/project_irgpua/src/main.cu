@@ -10,8 +10,7 @@
 #include <filesystem>
 #include <numeric>
 
-#include <thrust/device_vector.h>
-#include <thrust/copy.h>
+#include <rmm/device_uvector.hpp>
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
@@ -51,18 +50,24 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // There are still ways to speeds this process of course
 
         images[i] = pipeline.get_image(i);
-
-        thread_local thrust::device_vector<int> buffer;
-    
         size_t elems = static_cast<size_t>(images[i].size());
-        if (buffer.size() < elems) buffer.resize(elems);
     
-        thrust::copy(images[i].buffer, images[i].buffer + elems, buffer.begin());
-
-        fix_image_gpu_indus(buffer);
-
-        thrust::copy(buffer.begin(), buffer.begin() + elems, images[i].buffer);
-
+        // Allocation GPU via RMM (device_uvector)
+        rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
+    
+        // Copie CPU -> GPU
+        cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+    
+        // Appel de ta fonction GPU (vide pour l'instant)
+        fix_image_gpu_indus(d_buf);
+    
+        // Copie GPU -> CPU
+        cudaMemcpyAsync(images[i].buffer, d_buf.data(), elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
+    
+        // Synchronisation stream pour s'assurer que tout est terminé
+        cudaStreamSynchronize(rmm::cuda_stream_default);
+    
+        // Optionnel : traiter l'image CPU comme avant
         fix_image_cpu(images[i]);
     }
 

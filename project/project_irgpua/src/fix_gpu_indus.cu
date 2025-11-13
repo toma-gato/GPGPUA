@@ -1,7 +1,6 @@
 #include "fix_gpu_indus.cuh"
-#include <thrust/device_vector.h>
 
-void fix_image_gpu_indus(thrust::device_vector<int>& buffer)
+
+void fix_image_gpu_indus(rmm::device_uvector<int> &buffer)
 {
-
 }
