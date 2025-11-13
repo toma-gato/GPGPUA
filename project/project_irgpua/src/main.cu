@@ -60,20 +60,20 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         printf("Image %d has %d errors before fix\n", i, error);
     
-        // Allocation GPU via RMM (device_uvector)
-        rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
+        // // Allocation GPU via RMM (device_uvector)
+        // rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
     
-        // Copie CPU -> GPU
-        cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+        // // Copie CPU -> GPU
+        // cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
     
-        // Appel de ta fonction GPU (vide pour l'instant)
-        fix_image_gpu_indus(d_buf);
+        // // Appel de ta fonction GPU (vide pour l'instant)
+        // fix_image_gpu_indus(d_buf);
     
-        // Copie GPU -> CPU
-        cudaMemcpyAsync(images[i].buffer, d_buf.data(), elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
+        // // Copie GPU -> CPU
+        // cudaMemcpyAsync(images[i].buffer, d_buf.data(), elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
     
-        // Synchronisation stream pour s'assurer que tout est terminé
-        cudaStreamSynchronize(rmm::cuda_stream_default);
+        // // Synchronisation stream pour s'assurer que tout est terminé
+        // cudaStreamSynchronize(rmm::cuda_stream_default);
 
         fix_image_cpu(images[i]);
 
