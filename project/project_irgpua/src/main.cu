@@ -54,18 +54,69 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         #pragma omp parallel for
         for (int i = 0; i < nb_images; ++i)
         {
+            // per-thread reusable resources
+            thread_local cudaStream_t thread_stream = nullptr;
+            thread_local bool stream_created = false;
+            thread_local rmm::device_uvector<int> d_buf(0, rmm::cuda_stream_default);
+            thread_local int* host_pinned = nullptr;
+            thread_local size_t host_pinned_bytes = 0;
+            thread_local size_t dev_buf_elems = 0;
+
+            if (!stream_created) {
+                if (cudaStreamCreate(&thread_stream) != cudaSuccess) {
+                    std::cerr << "cudaStreamCreate failed, using default stream\n";
+                    thread_stream = rmm::cuda_stream_default;
+                }
+                stream_created = true;
+            }
+
+            // get image and sizes
             images[i] = pipeline.get_image(i);
             size_t elems = static_cast<size_t>(images[i].size());
-            
-            rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
-            cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), 
-                            cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+            size_t bytes = elems * sizeof(int);
+
+            // ensure device buffer big enough (RMM pool makes resize cheap after first alloc)
+            if (dev_buf_elems < elems) {
+                d_buf.resize(elems, thread_stream);
+                dev_buf_elems = elems;
+            }
+
+            // ensure host-pinned buffer big enough and reuse it
+            if (host_pinned_bytes < bytes) {
+                if (host_pinned) {
+                    cudaFreeHost(host_pinned);
+                    host_pinned = nullptr;
+                }
+                if (cudaMallocHost(reinterpret_cast<void**>(&host_pinned), bytes) != cudaSuccess) {
+                    // fallback: heap buffer (slower)
+                    host_pinned = reinterpret_cast<int*>(malloc(bytes));
+                    if (!host_pinned) {
+                        std::cerr << "host buffer allocation failed\n";
+                        continue;
+                    }
+                }
+                host_pinned_bytes = bytes;
+            }
+
+            // copy input into pinned staging buffer
+            std::memcpy(host_pinned, images[i].buffer, bytes);
+
+            // async H2D on this thread's stream
+            CUDA_CHECK(cudaMemcpyAsync(d_buf.data(), host_pinned, bytes,
+                                    cudaMemcpyHostToDevice, thread_stream));
+
+            // call GPU pipeline (must use d_buf.stream() or the passed stream)
             fix_image_gpu_indus(d_buf);
-            
-            size_t new_elems = d_buf.size();
-            cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), 
-                            cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
-            cudaStreamSynchronize(rmm::cuda_stream_default);
+
+            // async D2H on same stream into pinned host buffer
+            CUDA_CHECK(cudaMemcpyAsync(host_pinned, d_buf.data(), bytes,
+                                    cudaMemcpyDeviceToHost, thread_stream));
+
+            // wait for the stream to finish this image (keeps correctness; can be removed for more advanced overlap)
+            CUDA_CHECK(cudaStreamSynchronize(thread_stream));
+
+            // copy pinned -> final CPU buffer
+            std::memcpy(images[i].buffer, host_pinned, bytes);
         }
     #else
         #pragma omp parallel for
