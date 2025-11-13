@@ -38,7 +38,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     std::cout << "Done, starting compute" << std::endl;
 
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < nb_images; ++i)
     {
         // TODO : make it GPU compatible (aka faster)
@@ -52,13 +52,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         images[i] = pipeline.get_image(i);
         size_t elems = static_cast<size_t>(images[i].size());
 
-        int error = 0;
-        for (size_t j = 0; j < elems; j++) {
-            if (images[i].buffer[j] == -27)
-                error += 1;
-        }
+        // int error = 0;
+        // for (size_t j = 0; j < elems; j++) {
+        //     if (images[i].buffer[j] == -27)
+        //         error += 1;
+        // }
 
-        printf("Image %d has %d errors before fix\n", i, error);
+        // printf("Image %d has %d errors before fix\n", i, error);
     
         // // Allocation GPU via RMM (device_uvector)
         // rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
@@ -77,14 +77,14 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         fix_image_cpu(images[i]);
 
-        int prev_error = error;
-        error = 0;
-        for (int j = 0; j < images[i].size() - prev_error; ++i) {
-            if (images[i].buffer[j] == -27)
-                error += 1;
-        }
+        // int prev_error = error;
+        // error = 0;
+        // for (int j = 0; j < images[i].size() - prev_error; ++i) {
+        //     if (images[i].buffer[j] == -27)
+        //         error += 1;
+        // }
 
-        printf("Image %d has %d errors\n", i, error);
+        // printf("Image %d has %d errors\n", i, error);
     }
 
     std::cout << "Done with compute, starting stats" << std::endl;
