@@ -9,9 +9,10 @@ struct NotGarbage {
     __device__ bool operator()(int val) const { return val != -27; }
 };
 
-void remove_garbage(rmm::device_uvector<int> &buffer, cudaStream_t stream)
+void remove_garbage(rmm::device_uvector<int> &buffer)
 {
     size_t n = buffer.size();
+    cudaStream_t stream = buffer.stream();
     
     rmm::device_uvector<int> temp(n, stream);
     rmm::device_uvector<int> n_selected(1, stream);
@@ -58,9 +59,10 @@ __global__ void apply_pattern_kernel_optimized(raft::device_span<int> data, size
     }
 }
 
-void apply_pattern_treatment(rmm::device_uvector<int> &buffer, cudaStream_t stream)
+void apply_pattern_treatment(rmm::device_uvector<int> &buffer)
 {
     size_t n = buffer.size();
+    cudaStream_t stream = buffer.stream();
     
     int threads_per_block = 256;
     int num_blocks = (n + threads_per_block - 1) / threads_per_block;
@@ -72,6 +74,7 @@ void apply_pattern_treatment(rmm::device_uvector<int> &buffer, cudaStream_t stre
     CUDA_CHECK_ERROR(cudaGetLastError());
 }
 
+// Kernel pour appliquer la transformation d'égalisation
 __global__ void apply_histogram_equalization_kernel(
     int* data, 
     size_t n, 
@@ -84,12 +87,14 @@ __global__ void apply_histogram_equalization_kernel(
     if (idx < n)
     {
         int pixel = data[idx];
+        // Formule d'égalisation d'histogramme
         float normalized = ((cumulative_histo[pixel] - cdf_min) / 
                            static_cast<float>(total_pixels - cdf_min)) * 255.0f;
         data[idx] = static_cast<int>(roundf(normalized));
     }
 }
 
+// Kernel pour trouver le premier élément non-zéro
 __global__ void find_first_nonzero_kernel(const int* histo, int* result, int size)
 {
     __shared__ int found;
@@ -117,9 +122,10 @@ __global__ void find_first_nonzero_kernel(const int* histo, int* result, int siz
     }
 }
 
-void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t stream)
+void histogram_equalization_gpu(rmm::device_uvector<int> &buffer)
 {
     size_t n = buffer.size();
+    cudaStream_t stream = buffer.stream();
     
     // Étape 1 : Calculer l'histogramme avec CUB
     const int num_bins = 256;
@@ -202,13 +208,13 @@ void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t s
 }
 
 
-void fix_image_gpu_indus(rmm::device_uvector<int> &buffer, cudaStream_t stream)
+void fix_image_gpu_indus(rmm::device_uvector<int> &buffer)
 {
-    remove_garbage(buffer, stream);
+    remove_garbage(buffer);
 
-    apply_pattern_treatment(buffer, stream);
+    apply_pattern_treatment(buffer);
 
-    histogram_equalization_gpu(buffer, stream);
+    histogram_equalization_gpu(buffer);
 
-    CUDA_CHECK_ERROR(cudaStreamSynchronize(stream));
+    CUDA_CHECK_ERROR(cudaStreamSynchronize(buffer.stream()));
 }
