@@ -58,7 +58,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // Copie CPU -> GPU
         cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
     
-        // Appel de ta fonction GPU (vide pour l'instant)
         fix_image_gpu_indus(d_buf);
     
         // Copie GPU -> CPU
