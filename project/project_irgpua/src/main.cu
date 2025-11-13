@@ -54,23 +54,39 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // You *must not* copy all the images and only then do the computations
         // You must get the image from the pipeline as they arrive and launch computations right away
         // There are still ways to speeds this process of course
-
+        
+        // Charger l'image originale UNE SEULE FOIS
         Image original = pipeline.get_image(i);
-        size_t elems = static_cast<size_t>(original.size());
-
-        images_cpu[i] = original;
-        images_gpu[i] = original;
-    
-        rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
-        cudaMemcpyAsync(d_buf.data(), images_gpu[i].buffer, elems * sizeof(int), 
+        size_t original_elems = static_cast<size_t>(original.size());
+        
+        // Créer une copie pour la version CPU
+        Image image_cpu;
+        image_cpu.width = original.width;
+        image_cpu.height = original.height;
+        image_cpu.buffer = new int[original_elems];
+        memcpy(image_cpu.buffer, original.buffer, original_elems * sizeof(int));
+        
+        // VERSION GPU (sur l'original)
+        rmm::device_uvector<int> d_buf(original_elems, rmm::cuda_stream_default);
+        cudaMemcpyAsync(d_buf.data(), original.buffer, original_elems * sizeof(int), 
                         cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+        
         fix_image_gpu_indus(d_buf);
-        cudaMemcpyAsync(images_gpu[i].buffer, d_buf.data(), elems * sizeof(int), 
+        
+        size_t new_elems = d_buf.size();
+        cudaMemcpyAsync(original.buffer, d_buf.data(), new_elems * sizeof(int), 
                         cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
         cudaStreamSynchronize(rmm::cuda_stream_default);
         
-        // VERSION CPU
-        fix_image_cpu(images_cpu[i]);
+        original.resize(new_elems);
+        images_gpu[i] = std::move(original);
+        
+        // VERSION CPU (sur la copie)
+        fix_image_cpu(image_cpu);
+        images_cpu[i] = std::move(image_cpu);
+        
+        // Nettoyer
+        delete[] image_cpu.buffer;
     }
 
     std::cout << "Done with compute, starting stats" << std::endl;
