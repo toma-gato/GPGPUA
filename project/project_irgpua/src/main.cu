@@ -102,18 +102,18 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             std::memcpy(host_pinned, images[i].buffer, bytes);
 
             // async H2D on this thread's stream
-            CUDA_CHECK(cudaMemcpyAsync(d_buf.data(), host_pinned, bytes,
-                                    cudaMemcpyHostToDevice, thread_stream));
+            cudaMemcpyAsync(d_buf.data(), host_pinned, bytes,
+                                    cudaMemcpyHostToDevice, thread_stream);
 
             // call GPU pipeline (must use d_buf.stream() or the passed stream)
             fix_image_gpu_indus(d_buf);
 
             // async D2H on same stream into pinned host buffer
-            CUDA_CHECK(cudaMemcpyAsync(host_pinned, d_buf.data(), bytes,
-                                    cudaMemcpyDeviceToHost, thread_stream));
+            cudaMemcpyAsync(host_pinned, d_buf.data(), bytes,
+                                    cudaMemcpyDeviceToHost, thread_stream);
 
             // wait for the stream to finish this image (keeps correctness; can be removed for more advanced overlap)
-            CUDA_CHECK(cudaStreamSynchronize(thread_stream));
+            cudaStreamSynchronize(thread_stream);
 
             // copy pinned -> final CPU buffer
             std::memcpy(images[i].buffer, host_pinned, bytes);
