@@ -11,7 +11,6 @@ struct NotGarbage {
 
 void remove_garbage(raft::device_span<int> buffer, cudaStream_t stream)
 {
-    const int garbage_val = -27;
     size_t n = buffer.size();
 
     rmm::device_uvector<int> temp(n, stream);

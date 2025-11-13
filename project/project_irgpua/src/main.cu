@@ -51,6 +51,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
         images[i] = pipeline.get_image(i);
         size_t elems = static_cast<size_t>(images[i].size());
+
+        int error = 0;
+        for (size_t j = 0; j < elems; j++) {
+            if (images[i].buffer[j] == -27)
+                error += 1;
+        }
     
         // Allocation GPU via RMM (device_uvector)
         rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
@@ -67,7 +73,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         // Synchronisation stream pour s'assurer que tout est terminé
         cudaStreamSynchronize(rmm::cuda_stream_default);
 
-        int error = 0;
+        error = 0;
         for (int j = 0; j < images[i].size(); ++i) {
             if (images[i].buffer[j] == -27)
                 error += 1;
