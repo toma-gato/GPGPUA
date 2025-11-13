@@ -3,6 +3,10 @@
 #include <cub/cub.cuh>
 #include <raft/core/device_span.hpp>
 
+struct NotGarbage {
+    __device__ bool operator()(int val) const { return val != -27; }
+};
+
 void remove_garbage(raft::device_span<int> buffer, cudaStream_t stream)
 {
     const int garbage_val = -27;
@@ -13,28 +17,12 @@ void remove_garbage(raft::device_span<int> buffer, cudaStream_t stream)
     void* d_temp_storage = nullptr;
     size_t temp_storage_bytes = 0;
 
-    cub::DeviceSelect::Flagged(
-        d_temp_storage,
-        temp_storage_bytes,
-        buffer.data(),
-        temp.data(),
-        nullptr,
-        n,
-        [=] __device__ (int val) { return val != garbage_val; }
-    );
-
-    rmm:device_uvector<char> cub_storage(temp_storage_bytes, stream);
-    d_temp_storage = cub_storage.data();
-
-    rmm::device_scalar<int> n_selected(0, stream);
-    cub::DeviceSelect::Flagged(
-        d_temp_storage,
-        temp_storage_bytes,
-        buffer.data(),
-        temp.data(),
-        n_selected.data(),
-        n,
-        [=] __device__ (int val) { return val != garbage_val; }
+    cub::DeviceSelect::FlaggedIf(
+        d_temp_storage, temp_storage_bytes,
+        buffer.data(), temp.data(),
+        num_selected.data(),
+        buffer.size(),
+        NotGarbage()
     );
 
     cudaMemcpyAsync(buffer.data(), temp.data(), n * sizeof(int), cudaMemcpyDeviceToDevice, stream);
