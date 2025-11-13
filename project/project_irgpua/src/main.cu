@@ -128,7 +128,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         images_cpu[i].write(str);
 
         oss << "GPU_Image#" << images_gpu[i].to_sort.id << ".pgm";
-        std::string str = oss.str();
+        str = oss.str();
         images_gpu[i].write(str);
     }
 
