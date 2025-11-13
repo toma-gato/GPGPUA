@@ -28,7 +28,7 @@ void remove_garbage(raft::device_span<int> buffer, cudaStream_t stream)
         NotGarbage()
     );
 
-    printf("Number of garbage elements removed: %d\n", n - n_selected.element(0));
+    printf("Number of garbage elements removed: %d\n", n - n_selected.element(0, stream));
 
     cudaMemcpyAsync(buffer.data(), temp.data(), n * sizeof(int), cudaMemcpyDeviceToDevice, stream);
     cudaStreamSynchronize(stream);
