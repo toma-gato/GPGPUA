@@ -1,5 +1,6 @@
 #include "reduce.cuh"
 
+
 /**
  * Performs a reduction (sum) on the input device vector using a 
  */
@@ -57,18 +58,19 @@ int reduce(rmm::device_vector<int> d_data)
 {
     size_t num_elements = d_data.size();
 
-    size_t block_size = 256;
-    size_t grid_size = (num_elements + block_size - 1) / block_size;
+    size_t block_size = 1024;
+    size_t block_count = (num_elements + block_size - 1) / block_size;
+    std::cout << block_count << '\n';
 
     cuda::std::span<int> d_data_span(thrust::raw_pointer_cast(d_data.data()), d_data.size());
 
-    rmm::device_vector<int> d_intermediate(grid_size, 0);
+    rmm::device_vector<int> d_intermediate(block_count, 0);
     cuda::std::span<int> d_intermediate_span(thrust::raw_pointer_cast(d_intermediate.data()), d_intermediate.size());
 
     rmm::device_vector<int> d_result(1, 0);
     cuda::std::span<int> d_result_span(thrust::raw_pointer_cast(d_result.data()), 1);
 
-    reduce_block<<<grid_size, block_size>>>(d_data_span, d_intermediate_span);
+    reduce_block<<<block_count, block_size>>>(d_data_span, d_intermediate_span);
     reduce_final<<<1, block_size>>>(d_intermediate_span, d_result_span);
 
     int result = 0;

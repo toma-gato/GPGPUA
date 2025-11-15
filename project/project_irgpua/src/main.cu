@@ -13,20 +13,21 @@
 #include <rmm/device_uvector.hpp>
 
 #include "reduce.cuh"
+#include "scan.cuh"
 
 #include <chrono>
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
+int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
 {
     // -- Pipeline initialization
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    #ifdef USE_GPU
-        std::cout << "Using GPU..." << std::endl;
-    #else
-        std::cout << "Using CPU..." << std::endl;
-    #endif
+#ifdef USE_GPU
+    std::cout << "Using GPU..." << std::endl;
+#else
+    std::cout << "Using CPU..." << std::endl;
+#endif
 
     std::cout << "File loading..." << std::endl;
 
@@ -34,9 +35,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
     std::vector<std::string> filepaths;
-    //for (const auto& dir_entry : recursive_directory_iterator("/afs/cri.epita.fr/resources/teach/IRGPUA/images"))
-    //for (const auto& dir_entry : recursive_directory_iterator("/home/thomas.galateau/image_test"))
-    for (const auto& dir_entry : recursive_directory_iterator("./images_projet"))
+    // for (const auto& dir_entry : recursive_directory_iterator("/afs/cri.epita.fr/resources/teach/IRGPUA/images"))
+    // for (const auto& dir_entry : recursive_directory_iterator("/home/thomas.galateau/image_test"))
+    for (const auto &dir_entry : recursive_directory_iterator("./images_projet"))
         filepaths.emplace_back(dir_entry.path());
 
     // - Init pipeline object
@@ -52,51 +53,58 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     std::cout << "Done, starting compute" << std::endl;
 
-    #ifdef USE_GPU
-    
-        #pragma omp parallel for
-        for (int i = 0; i < nb_images; ++i)
-        {
-            images[i] = pipeline.get_image(i);
-            size_t elems = static_cast<size_t>(images[i].size());
+#ifdef USE_GPU
 
-            rmm::device_vector<int> d_buf(elems);
-            int res = reduce(d_buf);
-            
-/*             rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
-            cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
-            
-            fix_image_gpu_indus(d_buf, rmm::cuda_stream_default);
-            
-            size_t new_elems = d_buf.size();
-            cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
-            cudaStreamSynchronize(rmm::cuda_stream_default); */
-        }
-    #else
-        #pragma omp parallel for
-        for (int i = 0; i < nb_images; ++i)
-        {
-            images[i] = pipeline.get_image(i);
-            
-            fix_image_cpu(images[i]);
-        }
-    #endif
+#pragma omp parallel for
+    for (int i = 0; i < nb_images; ++i)
+    {
+        images[i] = pipeline.get_image(i);
+        size_t elems = static_cast<size_t>(images[i].size());
+
+        rmm::device_vector<int> d_buf(images[i].buffer, images[i].buffer + elems);
+        rmm::device_vector<int> d_scan_result(elems, 0);
+
+        exclusive_scan(d_buf, d_scan_result);
+
+        int *result_ptr = new int[elems];
+        cudaMemcpy(result_ptr, thrust::raw_pointer_cast(d_scan_result.data()), elems * sizeof(int), cudaMemcpyDeviceToHost);
+        std::cout << "Scan: " << result_ptr[0] << ", " << result_ptr[1] << ", ..., " << result_ptr[elems - 1] << std::endl;
+        delete[] result_ptr;
+
+        /*             rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
+                    cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+
+                    fix_image_gpu_indus(d_buf, rmm::cuda_stream_default);
+
+                    size_t new_elems = d_buf.size();
+                    cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
+                    cudaStreamSynchronize(rmm::cuda_stream_default); */
+    }
+#else
+#pragma omp parallel for
+    for (int i = 0; i < nb_images; ++i)
+    {
+        images[i] = pipeline.get_image(i);
+
+        fix_image_cpu(images[i]);
+    }
+#endif
 
     std::cout << "Done with compute, starting stats" << std::endl;
 
-    // -- All images are now fixed : compute stats (total then sort)
+// -- All images are now fixed : compute stats (total then sort)
 
-    // - First compute the total of each image
+// - First compute the total of each image
 
-    // TODO : make it GPU compatible (aka faster)
-    // You can use multiple CPU threads for your GPU version using openmp or not
-    // Up to you :)
-    #pragma omp parallel for
+// TODO : make it GPU compatible (aka faster)
+// You can use multiple CPU threads for your GPU version using openmp or not
+// Up to you :)
+#pragma omp parallel for
     for (int i = 0; i < nb_images; ++i)
     {
-        auto& image = images[i];
+        auto &image = images[i];
         const int image_size = image.width * image.height;
-        
+
         image.to_sort.total = std::reduce(image.buffer, image.buffer + image_size, 0);
     }
 
@@ -108,15 +116,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // But just like the CPU version, moving the actual images while sorting will be too slow
     using ToSort = Image::ToSort;
     std::vector<ToSort> to_sort(nb_images);
-    std::generate(to_sort.begin(), to_sort.end(), [n = 0, images] () mutable
-    {
-        return images[n++].to_sort;
-    });
+    std::generate(to_sort.begin(), to_sort.end(), [n = 0, images]() mutable
+                  { return images[n++].to_sort; });
 
     // TODO OPTIONAL : make it GPU compatible (aka faster)
-    std::sort(to_sort.begin(), to_sort.end(), [](ToSort a, ToSort b) {
-        return a.total < b.total;
-    });
+    std::sort(to_sort.begin(), to_sort.end(), [](ToSort a, ToSort b)
+              { return a.total < b.total; });
 
     // TODO : Test here that you have the same results
     // You can compare visually and should compare image vectors values and "total" values
@@ -134,7 +139,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     // Cleaning
     // TODO : Don't forget to update this if you change allocation style
-    for (int i = 0; i < nb_images; ++i) {
+    for (int i = 0; i < nb_images; ++i)
+    {
         free(images[i].buffer);
     }
 

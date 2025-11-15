@@ -27,7 +27,7 @@ set(CUDA_ARCHITECTURES "75")
 
 include_directories(src)
 
-add_executable(main src/main.cu src/fix_cpu.cu src/fix_gpu.cu src/fix_gpu_indus.cu)
+add_executable(main src/main.cu src/fix_cpu.cu src/fix_gpu.cu src/fix_gpu_indus.cu src/reduce.cu src/reduce.cuh src/scan.cu src/scan.cuh)
 
 if(USE_GPU)
     target_compile_definitions(main PRIVATE USE_GPU)
