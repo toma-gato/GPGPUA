@@ -12,6 +12,8 @@
 
 #include <rmm/device_uvector.hpp>
 
+#include "reduce.cuh"
+
 #include <chrono>
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
@@ -32,8 +34,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
     std::vector<std::string> filepaths;
-    for (const auto& dir_entry : recursive_directory_iterator("/afs/cri.epita.fr/resources/teach/IRGPUA/images"))
+    //for (const auto& dir_entry : recursive_directory_iterator("/afs/cri.epita.fr/resources/teach/IRGPUA/images"))
     //for (const auto& dir_entry : recursive_directory_iterator("/home/thomas.galateau/image_test"))
+    for (const auto& dir_entry : recursive_directory_iterator("./images_projet"))
         filepaths.emplace_back(dir_entry.path());
 
     // - Init pipeline object
@@ -56,15 +59,18 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         {
             images[i] = pipeline.get_image(i);
             size_t elems = static_cast<size_t>(images[i].size());
+
+            rmm::device_vector<int> d_buf(elems);
+            int res = reduce(d_buf);
             
-            rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
+/*             rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
             cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
             
             fix_image_gpu_indus(d_buf, rmm::cuda_stream_default);
             
             size_t new_elems = d_buf.size();
             cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
-            cudaStreamSynchronize(rmm::cuda_stream_default);
+            cudaStreamSynchronize(rmm::cuda_stream_default); */
         }
     #else
         #pragma omp parallel for
