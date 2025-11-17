@@ -4,13 +4,7 @@
 
 #include "reduce.cuh"
 
-/**
- * @brief Kogge-stone scan on reduced blocks
- *
- * @param reduced_blocks
- * @param d_output
- * @return
- */
+
 __global__ void scan_block(cuda::std::span<int> reduced_blocks, cuda::std::span<int> d_output)
 {
     extern __shared__ int s_data[];
@@ -37,33 +31,43 @@ __global__ void scan_block(cuda::std::span<int> reduced_blocks, cuda::std::span<
     d_output[tid] = s_data[tid];
 }
 
-/**
- * @brief
- *
- * @param d_data
- * @param d_scanned_blocks
- * @param d_output
- * @return __global__
- */
+
 __global__ void propagate(cuda::std::span<int> d_data, cuda::std::span<int> d_scanned_blocks, cuda::std::span<int> d_output)
 {
+    extern __shared__ int s_data[];
     int tid = threadIdx.x;
     int bid = blockIdx.x;
     int i = bid * blockDim.x + tid;
 
+    // Load block data into shared memory (pad out-of-range with 0)
+    s_data[tid] = (i < d_data.size()) ? d_data[i] : 0;
+    __syncthreads();
+
+    // Inclusive scan (Kogge-Stone style) in shared memory
+    for (unsigned int offset = 1; offset < blockDim.x; offset *= 2)
+    {
+        int val = 0;
+        if (tid >= offset)
+        {
+            val = s_data[tid - offset];
+        }
+        __syncthreads();
+
+        s_data[tid] += val;
+        __syncthreads();
+    }
+
+    // Convert inclusive scan to exclusive by shifting right by one
+    int exclusive = (tid == 0) ? 0 : s_data[tid - 1];
+
+    // Add block prefix (scanned_blocks) and write to output shifted by 1
     if (i < d_data.size())
     {
-        d_output[i] = d_data[i] + d_scanned_blocks[bid];
+        d_output[i + 1] = exclusive + d_data[i] + d_scanned_blocks[bid];
     }
 }
 
-/**
- * @brief
- *
- * @param d_data
- * @param d_output
- */
-void exclusive_scan(rmm::device_vector<int> &d_data, rmm::device_vector<int> &d_output)
+void exclusive_scan_byhand(rmm::device_vector<int> &d_data, rmm::device_vector<int> &d_output)
 {
     size_t num_elements = d_data.size();
     size_t block_size = 256;
@@ -83,5 +87,10 @@ void exclusive_scan(rmm::device_vector<int> &d_data, rmm::device_vector<int> &d_
 
     cuda::std::span<int> d_output_span(thrust::raw_pointer_cast(d_output.data()), d_output.size());
 
-    propagate<<<block_count, block_size>>>(data_span, scanned_blocks_span, d_output_span);
+    // Ensure output[0] == 0
+    int zero = 0;
+    cudaMemcpy(thrust::raw_pointer_cast(d_output.data()), &zero, sizeof(int), cudaMemcpyHostToDevice);
+
+    // Launch propagate with shared memory for block-local scan
+    propagate<<<block_count, block_size, block_size * sizeof(int)>>>(data_span, scanned_blocks_span, d_output_span);
 }

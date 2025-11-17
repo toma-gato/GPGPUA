@@ -64,7 +64,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
         rmm::device_vector<int> d_buf(images[i].buffer, images[i].buffer + elems);
         rmm::device_vector<int> d_scan_result(elems, 0);
 
-        exclusive_scan(d_buf, d_scan_result);
+        exclusive_scan_byhand(d_buf, d_scan_result);
 
         int *result_ptr = new int[elems];
         cudaMemcpy(result_ptr, thrust::raw_pointer_cast(d_scan_result.data()), elems * sizeof(int), cudaMemcpyDeviceToHost);
