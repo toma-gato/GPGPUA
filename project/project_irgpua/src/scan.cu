@@ -60,10 +60,20 @@ __global__ void propagate(cuda::std::span<int> d_data, cuda::std::span<int> d_sc
     // Convert inclusive scan to exclusive by shifting right by one
     int exclusive = (tid == 0) ? 0 : s_data[tid - 1];
 
-    // Add block prefix (scanned_blocks) and write to output shifted by 1
+    // Add block prefix (scanned_blocks) and write to output.
+    // Support two output layouts:
+    // - If `d_output.size() == d_data.size() + 1` -> write shifted result (output[0] = 0, output[i+1] = sum up to i)
+    // - If `d_output.size() == d_data.size()` -> write exclusive scan in-place (output[i] = sum of elements before i)
     if (i < d_data.size())
     {
-        d_output[i + 1] = exclusive + d_data[i] + d_scanned_blocks[bid];
+        if (d_output.size() == d_data.size() + 1)
+        {
+            d_output[i + 1] = exclusive + d_data[i] + d_scanned_blocks[bid];
+        }
+        else
+        {
+            d_output[i] = exclusive + d_scanned_blocks[bid];
+        }
     }
 }
 
@@ -83,14 +93,31 @@ void exclusive_scan_byhand(rmm::device_vector<int> &d_data, rmm::device_vector<i
     rmm::device_vector<int> d_scanned_blocks(block_count);
     cuda::std::span<int> scanned_blocks_span(thrust::raw_pointer_cast(d_scanned_blocks.data()), d_scanned_blocks.size());
     size_t shared_memsize = block_count * sizeof(int);
-    scan_block<<<1, block_count, shared_memsize>>>(reduced_blocks_span, scanned_blocks_span);
+
+    // CUDA limits threads-per-block (typically 1024). If the number of reduced blocks
+    // exceeds that, perform a recursive scan on the reduced_blocks to compute scanned
+    // block prefixes instead of trying to launch a single block with >1024 threads.
+    constexpr unsigned int max_threads_per_block = 1024;
+    if (block_count <= max_threads_per_block)
+    {
+        scan_block<<<1, block_count, shared_memsize>>>(reduced_blocks_span, scanned_blocks_span);
+    }
+    else
+    {
+        // Recursively compute exclusive scan over reduced_blocks; the output will have size block_count+1
+        rmm::device_vector<int> temp_scan(block_count + 1);
+        exclusive_scan_byhand(reduced_blocks, temp_scan);
+
+        // Copy the first `block_count` prefix values into d_scanned_blocks (device-to-device copy)
+        cudaMemcpy(thrust::raw_pointer_cast(d_scanned_blocks.data()),
+                   thrust::raw_pointer_cast(temp_scan.data()),
+                   block_count * sizeof(int),
+                   cudaMemcpyDeviceToDevice);
+    }
 
     cuda::std::span<int> d_output_span(thrust::raw_pointer_cast(d_output.data()), d_output.size());
 
-    // Ensure output[0] == 0
-    int zero = 0;
-    cudaMemcpy(thrust::raw_pointer_cast(d_output.data()), &zero, sizeof(int), cudaMemcpyHostToDevice);
-
     // Launch propagate with shared memory for block-local scan
     propagate<<<block_count, block_size, block_size * sizeof(int)>>>(data_span, scanned_blocks_span, d_output_span);
+    cudaDeviceSynchronize();
 }

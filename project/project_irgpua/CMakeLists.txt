@@ -46,6 +46,7 @@ add_library(project_core STATIC
         src/fix_gpu_indus.cu
         src/reduce.cu
         src/scan.cu
+        src/compact.cu
 )
 
 target_include_directories(project_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -77,6 +78,12 @@ target_include_directories(scan_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(scan_tests PRIVATE gtest_main project_core)
 set_target_properties(scan_tests PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
+add_executable(compact_tests tests/compact_tests.cu)
+target_include_directories(compact_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(compact_tests PRIVATE gtest_main project_core)
+set_target_properties(compact_tests PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
 include(GoogleTest)
 gtest_discover_tests(reduce_tests)
 gtest_discover_tests(scan_tests)
+gtest_discover_tests(compact_tests)

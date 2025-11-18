@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
-void fix_image_cpu(Image& to_fix)
+void fix_image_cpu(Image &to_fix)
 {
     const int image_size = to_fix.width * to_fix.height;
 
@@ -30,7 +30,6 @@ void fix_image_cpu(Image& to_fix)
     for (std::size_t i = 0; i < predicate.size(); ++i)
         if (to_fix.buffer[i] != garbage_val)
             to_fix.buffer[predicate[i]] = to_fix.buffer[i];
-
 
     // #2 Apply map to fix pixels
 
@@ -61,16 +60,16 @@ void fix_image_cpu(Image& to_fix)
 
     // Find the first non-zero value in the cumulative histogram
 
-    auto first_none_zero = std::find_if(histo.begin(), histo.end(), [](auto v) { return v != 0; });
+    auto first_none_zero = std::find_if(histo.begin(), histo.end(), [](auto v)
+                                        { return v != 0; });
 
     const int cdf_min = *first_none_zero;
 
     // Apply the map transformation of the histogram equalization
 
     std::transform(to_fix.buffer, to_fix.buffer + image_size, to_fix.buffer,
-        [image_size, cdf_min, &histo](int pixel)
-            {
-                return std::roundf(((histo[pixel] - cdf_min) / static_cast<float>(image_size - cdf_min)) * 255.0f);
-            }
-    );
+                   [image_size, cdf_min, &histo](int pixel)
+                   {
+                       return std::roundf(((histo[pixel] - cdf_min) / static_cast<float>(image_size - cdf_min)) * 255.0f);
+                   });
 }

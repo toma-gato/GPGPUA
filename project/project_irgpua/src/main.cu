@@ -10,10 +10,7 @@
 #include <filesystem>
 #include <numeric>
 
-#include <rmm/device_uvector.hpp>
-
-#include "reduce.cuh"
-#include "scan.cuh"
+#include "fix_gpu.cuh"
 
 #include <chrono>
 
@@ -61,24 +58,23 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
         images[i] = pipeline.get_image(i);
         size_t elems = static_cast<size_t>(images[i].size());
 
-        rmm::device_vector<int> d_buf(images[i].buffer, images[i].buffer + elems);
-        rmm::device_vector<int> d_scan_result(elems, 0);
+        // allocate device buffer and copy host -> device
+        rmm::device_vector<int> d_buf(elems);
+        cudaMemcpyAsync(d_buf.data().get(), images[i].buffer, elems * sizeof(int),
+                        cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+        cudaStreamSynchronize(rmm::cuda_stream_default);
 
-        exclusive_scan_byhand(d_buf, d_scan_result);
+        fix_image_gpu(d_buf);
 
-        int *result_ptr = new int[elems];
-        cudaMemcpy(result_ptr, thrust::raw_pointer_cast(d_scan_result.data()), elems * sizeof(int), cudaMemcpyDeviceToHost);
-        std::cout << "Scan: " << result_ptr[0] << ", " << result_ptr[1] << ", ..., " << result_ptr[elems - 1] << std::endl;
-        delete[] result_ptr;
+        // copy back the compacted result (may be smaller)
+        size_t new_elems = d_buf.size();
+        cudaMemcpyAsync(images[i].buffer, d_buf.data().get(), new_elems * sizeof(int),
+                        cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
+        cudaStreamSynchronize(rmm::cuda_stream_default);
 
-        /*             rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
-                    cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
-
-                    fix_image_gpu_indus(d_buf, rmm::cuda_stream_default);
-
-                    size_t new_elems = d_buf.size();
-                    cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
-                    cudaStreamSynchronize(rmm::cuda_stream_default); */
+        // ensure host buffer keeps expected size: zero the tail if compacting removed pixels
+        if (new_elems < elems)
+            std::fill(images[i].buffer + new_elems, images[i].buffer + elems, 0);
     }
 #else
 #pragma omp parallel for
