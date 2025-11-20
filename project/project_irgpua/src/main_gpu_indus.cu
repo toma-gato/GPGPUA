@@ -22,7 +22,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Using CPU..." << std::endl;
+    std::cout << "Using GPU indus..." << std::endl;
     std::cout << "File loading..." << std::endl;
 
     // - Get file paths
@@ -51,8 +51,16 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
     for (int i = 0; i < nb_images; ++i)
     {
         images[i] = pipeline.get_image(i);
+        size_t elems = static_cast<size_t>(images[i].size());
 
-        fix_image_cpu(images[i]);
+        rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
+        cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+
+        fix_image_gpu_indus(d_buf, rmm::cuda_stream_default);
+
+        size_t new_elems = d_buf.size();
+        cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
+        cudaStreamSynchronize(rmm::cuda_stream_default);
     }
 
     std::cout << "Done with compute, starting stats" << std::endl;

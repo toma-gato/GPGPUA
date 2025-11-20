@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.26.4 FATAL_ERROR)
 project(project_irgpua LANGUAGES CXX CUDA)
 
-option(USE_GPU "Use GPU acceleration" ON)
-
 set(RAFT_NVTX ON)
 include(fetch_rapids.cmake)
 include(rapids-cmake)
@@ -28,6 +26,8 @@ set(CUDA_ARCHITECTURES "75")
 include_directories(src)
 
 add_executable(main src/main.cu)
+add_executable(main_gpu src/main_gpu.cu)
+add_executable(main_gpu_indus src/main_gpu.cu)
 
 if(USE_GPU)
     target_compile_definitions(main PRIVATE USE_GPU)
@@ -38,6 +38,10 @@ endif()
 
 target_compile_options(main PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=${OpenMP_CXX_FLAGS}>)
 target_link_libraries(main PUBLIC OpenMP::OpenMP_CXX rmm::rmm raft::raft)
+target_compile_options(main_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=${OpenMP_CXX_FLAGS}>)
+target_link_libraries(main_gpu PUBLIC OpenMP::OpenMP_CXX rmm::rmm raft::raft)
+target_compile_options(main_gpu_indus PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=${OpenMP_CXX_FLAGS}>)
+target_link_libraries(main_gpu_indus PUBLIC OpenMP::OpenMP_CXX rmm::rmm raft::raft)
 
 # Create a library target containing the core sources (so tests can link against it)
 add_library(project_core STATIC
@@ -56,6 +60,9 @@ target_link_libraries(project_core PUBLIC OpenMP::OpenMP_CXX rmm::rmm raft::raft
 
 # Link the core library into the main executable
 target_link_libraries(main PUBLIC project_core)
+target_link_libraries(main_gpu PUBLIC project_core)
+target_link_libraries(main_gpu_indus PUBLIC project_core)
+
 
 # GoogleTest setup
 include(FetchContent)
