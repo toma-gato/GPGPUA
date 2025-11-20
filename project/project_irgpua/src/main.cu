@@ -12,6 +12,8 @@
 
 #include "fix_gpu.cuh"
 
+#include <thrust/device_ptr.h>
+
 #include <chrono>
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
@@ -72,7 +74,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
                         cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
         cudaStreamSynchronize(rmm::cuda_stream_default);
 
+        std::cout << "Image #" << i << " : " << elems << " -> " << new_elems << " pixels after fix" << std::endl;
+
         // ensure host buffer keeps expected size: zero the tail if compacting removed pixels
+        images[i].actual_size = static_cast<int>(new_elems);
         if (new_elems < elems)
             std::fill(images[i].buffer + new_elems, images[i].buffer + elems, 0);
     }

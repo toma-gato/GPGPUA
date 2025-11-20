@@ -44,6 +44,7 @@ add_library(project_core STATIC
         src/fix_cpu.cu
         src/fix_gpu.cu
         src/fix_gpu_indus.cu
+        src/histogram.cu
         src/reduce.cu
         src/scan.cu
         src/compact.cu
