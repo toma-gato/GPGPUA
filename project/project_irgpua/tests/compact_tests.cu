@@ -9,6 +9,21 @@
 
 #include "compact.cuh"
 
+// Helper: build an expected host vector that has the same size as the device output.
+// The remaining elements (unused slots) are filled with 0 to match device_vector initialization.
+static std::vector<int> build_expected_from_input(const thrust::host_vector<int> &h_input, size_t output_size, int flag)
+{
+    std::vector<int> filtered;
+    filtered.reserve(h_input.size());
+    std::copy_if(h_input.begin(), h_input.end(), std::back_inserter(filtered),
+                 [&flag](int x)
+                 { return x != flag; });
+
+    std::vector<int> expected(output_size, 0);
+    std::copy(filtered.begin(), filtered.end(), expected.begin());
+    return expected;
+}
+
 TEST(CompactTests, SingleElementWithFlag)
 {
     constexpr int flag = -27;
@@ -18,12 +33,7 @@ TEST(CompactTests, SingleElementWithFlag)
     compact_byhand(input, output, flag);
 
     thrust::host_vector<int> h_input = input;
-    std::vector<int> expected;
-    expected.reserve(h_input.size());
-    std::copy_if(h_input.begin(), h_input.end(), std::back_inserter(expected),
-                 [&flag](int x)
-                 { return x != flag; });
-    expected.resize(expected.size());
+    std::vector<int> expected = build_expected_from_input(h_input, output.size(), flag);
 
     thrust::host_vector<int> h_output = output;
     EXPECT_EQ(h_output, expected);
@@ -38,12 +48,7 @@ TEST(CompactTests, SingleElementWithoutFlag)
     compact_byhand(input, output, flag);
 
     thrust::host_vector<int> h_input = input;
-    std::vector<int> expected;
-    expected.reserve(h_input.size());
-    std::copy_if(h_input.begin(), h_input.end(), std::back_inserter(expected),
-                 [&flag](int x)
-                 { return x != flag; });
-    expected.resize(expected.size());
+    std::vector<int> expected = build_expected_from_input(h_input, output.size(), flag);
 
     thrust::host_vector<int> h_output = output;
     EXPECT_EQ(h_output, expected);
@@ -58,12 +63,7 @@ TEST(CompactTests, TenElementsWithFlag)
     compact_byhand(input, output, flag);
 
     thrust::host_vector<int> h_input = input;
-    std::vector<int> expected;
-    expected.reserve(h_input.size());
-    std::copy_if(h_input.begin(), h_input.end(), std::back_inserter(expected),
-                 [&flag](int x)
-                 { return x != flag; });
-    expected.resize(expected.size());
+    std::vector<int> expected = build_expected_from_input(h_input, output.size(), flag);
 
     thrust::host_vector<int> h_output = output;
     EXPECT_EQ(h_output, expected);
@@ -78,12 +78,7 @@ TEST(CompactTests, TenElementsWithoutFlag)
     compact_byhand(input, output, flag);
 
     thrust::host_vector<int> h_input = input;
-    std::vector<int> expected;
-    expected.reserve(h_input.size());
-    std::copy_if(h_input.begin(), h_input.end(), std::back_inserter(expected),
-                 [&flag](int x)
-                 { return x != flag; });
-    expected.resize(expected.size());
+    std::vector<int> expected = build_expected_from_input(h_input, output.size(), flag);
 
     thrust::host_vector<int> h_output = output;
     EXPECT_EQ(h_output, expected);
@@ -103,12 +98,7 @@ TEST(CompactTests, BlockSizeElementsWithFlag)
     compact_byhand(input, output, flag);
 
     thrust::host_vector<int> h_input = input;
-    std::vector<int> expected;
-    expected.reserve(h_input.size());
-    std::copy_if(h_input.begin(), h_input.end(), std::back_inserter(expected),
-                 [&flag](int x)
-                 { return x != flag; });
-    expected.resize(expected.size());
+    std::vector<int> expected = build_expected_from_input(h_input, output.size(), flag);
 
     thrust::host_vector<int> h_output = output;
     EXPECT_EQ(h_output, expected);
@@ -124,12 +114,7 @@ TEST(CompactTests, BlockSizeElementsWithoutFlag)
     compact_byhand(input, output, flag);
 
     thrust::host_vector<int> h_input = input;
-    std::vector<int> expected;
-    expected.reserve(h_input.size());
-    std::copy_if(h_input.begin(), h_input.end(), std::back_inserter(expected),
-                 [&flag](int x)
-                 { return x != flag; });
-    expected.resize(expected.size());
+    std::vector<int> expected = build_expected_from_input(h_input, output.size(), flag);
 
     thrust::host_vector<int> h_output = output;
     EXPECT_EQ(h_output, expected);
@@ -150,12 +135,7 @@ TEST(CompactTests, TenBlockSizeElementsWithFlag)
     compact_byhand(input, output, flag);
 
     thrust::host_vector<int> h_input = input;
-    std::vector<int> expected;
-    expected.reserve(h_input.size());
-    std::copy_if(h_input.begin(), h_input.end(), std::back_inserter(expected),
-                 [&flag](int x)
-                 { return x != flag; });
-    expected.resize(expected.size());
+    std::vector<int> expected = build_expected_from_input(h_input, output.size(), flag);
 
     thrust::host_vector<int> h_output = output;
     EXPECT_EQ(h_output, expected);
@@ -172,12 +152,7 @@ TEST(CompactTests, TenBlockSizeElementsWithoutFlag)
     compact_byhand(input, output, flag);
 
     thrust::host_vector<int> h_input = input;
-    std::vector<int> expected;
-    expected.reserve(h_input.size());
-    std::copy_if(h_input.begin(), h_input.end(), std::back_inserter(expected),
-                 [&flag](int x)
-                 { return x != flag; });
-    expected.resize(expected.size());
+    std::vector<int> expected = build_expected_from_input(h_input, output.size(), flag);
 
     thrust::host_vector<int> h_output = output;
     EXPECT_EQ(h_output, expected);
@@ -198,17 +173,11 @@ TEST(CompactTests, HundredBlockSizeElementsWithFlag)
     compact_byhand(input, output, flag);
 
     thrust::host_vector<int> h_input = input;
-    std::vector<int> expected;
-    expected.reserve(h_input.size());
-    std::copy_if(h_input.begin(), h_input.end(), std::back_inserter(expected),
-                 [&flag](int x)
-                 { return x != flag; });
-    expected.resize(expected.size());
+    std::vector<int> expected = build_expected_from_input(h_input, output.size(), flag);
 
     thrust::host_vector<int> h_output = output;
     EXPECT_EQ(h_output, expected);
 }
-
 
 TEST(CompactTests, DenseRegionsOfFlag)
 {
@@ -242,15 +211,8 @@ TEST(CompactTests, DenseRegionsOfFlag)
     compact_byhand(input, output, flag);
 
     thrust::host_vector<int> h_input = input;
-    std::vector<int> expected;
-    expected.reserve(h_input.size());
-    std::copy_if(h_input.begin(), h_input.end(), std::back_inserter(expected),
-                 [&flag](int x)
-                 { return x != flag; });
-    expected.resize(expected.size());
+    std::vector<int> expected = build_expected_from_input(h_input, output.size(), flag);
 
     thrust::host_vector<int> h_output = output;
     EXPECT_EQ(h_output, expected);
 }
-
-
