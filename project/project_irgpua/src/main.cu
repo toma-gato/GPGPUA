@@ -9,6 +9,7 @@
 #include <sstream>
 #include <filesystem>
 #include <numeric>
+#include <cassert>
 
 #include <rmm/device_uvector.hpp>
 #include <thrust/reduce.h>
@@ -207,7 +208,9 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // If you did the sorting, check that the ids are in the same order
     for (int i = 0; i < nb_images; ++i)
     {
-        std::cout << "Image #" << images[i].to_sort.id << " total : " << images[i].to_sort.total << " and should be : " << expected_images_total[i] <<std::endl;
+        assert (images[i].to_sort.total == expected_images_total[i]);
+
+        std::cout << "Image #" << images[i].to_sort.id << " total : " << images[i].to_sort.total << std::endl;
         std::ostringstream oss;
         oss << "Image#" << images[i].to_sort.id << ".pgm";
         std::string str = oss.str();
