@@ -52,21 +52,33 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     std::cout << "Done, starting compute" << std::endl;
 
     #ifdef USE_GPU
+        const int num_streams = std::min(nb_images, 16);
     
+        std::vector<cudaStream_t> streams(num_streams);
+        for (int i = 0; i < num_streams; ++i)
+        {
+            cudaStreamCreate(&streams[i]);
+        }
+        
+        std::vector<rmm::device_uvector<int>> d_buffers;
+        d_buffers.reserve(nb_images);
+
         #pragma omp parallel for
         for (int i = 0; i < nb_images; ++i)
         {
             images[i] = pipeline.get_image(i);
             size_t elems = static_cast<size_t>(images[i].size());
+            cudaStream_t stream = streams[i % num_streams];
+
+            d_buffers.emplace_back(elems, stream);
+
+            cudaMemcpyAsync(d_buffers[i].data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, stream);
             
-            rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
-            cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
-            
-            fix_image_gpu_indus(d_buf, rmm::cuda_stream_default);
-            
-            size_t new_elems = d_buf.size();
-            cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
-            cudaStreamSynchronize(rmm::cuda_stream_default);
+            fix_image_gpu_indus(d_buffers[i], stream);
+        }
+        for (auto& stream : streams)
+        {
+            cudaStreamSynchronize(stream);
         }
     #else
         #pragma omp parallel for
@@ -88,21 +100,47 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // You can use multiple CPU threads for your GPU version using openmp or not
     // Up to you :)
     #ifdef USE_GPU
+        rmm::device_uvector<int> d_results(nb_images, streams[0]);
+
         #pragma omp parallel for
         for (int i = 0; i < nb_images; ++i)
         {
-            auto& image = images[i];
-            const int image_size = image.width * image.height;
+            const int image_size = image[i].width * image[i].height;
+            cudaStream_t stream = streams[i % num_streams];
+
+            thrust::device_ptr<int> result_ptr = thrust::device_pointer_cast(d_results.data() + i);
             
-            int total = thrust::reduce(
-                thrust::cuda::par.on(rmm::cuda_stream_default),
-                image.buffer,
-                image.buffer + image_size,
+            *result_ptr = thrust::reduce(
+                thrust::cuda::par.on(stream),
+                d_buffers[i].data(),
+                d_buffers[i].data() + image_size,
                 0,
                 thrust::plus<int>()
             );
             
             images[i].to_sort.total = total;
+        }
+        for (auto& stream : streams)
+        {
+            cudaStreamSynchronize(stream);
+        }
+
+        std::vector<int> h_results(nb_images);
+        cudaMemcpy(h_results.data(), d_results.data(), 
+                   nb_images * sizeof(int), cudaMemcpyDeviceToHost);
+        
+        // Copier les images fixées
+        for (int i = 0; i < nb_images; ++i)
+        {
+            size_t new_elems = d_buffers[i].size();
+            cudaMemcpy(images[i].buffer, d_buffers[i].data(), 
+                       new_elems * sizeof(int), cudaMemcpyDeviceToHost);
+            images[i].to_sort.total = h_results[i];
+        }
+
+        for (auto& stream : streams)
+        {
+            cudaStreamDestroy(stream);
         }
     #else
         #pragma omp parallel for
