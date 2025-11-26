@@ -209,7 +209,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     for (int i = 0; i < nb_images; ++i)
     {
         std::cout << "Image #" << images[i].to_sort.id << " total : " << images[i].to_sort.total << std::endl;
-        if (images[i].to_sort.total + 1 != expected_images_total[i])
+        if (images[i].to_sort.total != expected_images_total[i])
         {
             std::cerr << "Image #" << images[i].to_sort.id << " error : total should be " << expected_images_total[i] << std::endl;
         }
