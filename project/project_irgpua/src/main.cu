@@ -11,6 +11,8 @@
 #include <numeric>
 
 #include <rmm/device_uvector.hpp>
+#include <thrust/reduce.h>
+#include <thrust/execution_policy.h>
 
 #include <chrono>
 
@@ -85,7 +87,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // TODO : make it GPU compatible (aka faster)
     // You can use multiple CPU threads for your GPU version using openmp or not
     // Up to you :)
-    #ifdef USE_GPU        std::vector<int> h_results(nb_images);
+    #ifdef USE_GPU
         #pragma omp parallel for
         for (int i = 0; i < nb_images; ++i)
         {
