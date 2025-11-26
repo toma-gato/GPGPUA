@@ -95,7 +95,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             const int image_size = image.width * image.height;
             
             int total = thrust::reduce(
-                thrust::cuda::par.on(stream),
+                thrust::cuda::par.on(rmm::cuda_stream_default),
                 image.buffer.begin(),
                 image.buffer.end(),
                 0,
