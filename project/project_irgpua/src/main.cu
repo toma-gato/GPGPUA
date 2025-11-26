@@ -96,8 +96,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
             
             int total = thrust::reduce(
                 thrust::cuda::par.on(rmm::cuda_stream_default),
-                image.buffer.begin(),
-                image.buffer.end(),
+                image.buffer,
+                image.buffer + image_size,
                 0,
                 thrust::plus<int>()
             );
