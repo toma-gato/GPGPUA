@@ -5,9 +5,8 @@
 #include <cub/cub.cuh>
 #include <raft/core/device_span.hpp>
 #include <thrust/transform.h>
-#include <thrust/iterator/counting_iterator.h>
 #include <thrust/execution_policy.h>
-#include <rmm/device_uvector.hpp>
+#include <thrust/iterator/counting_iterator.h>
 
 struct NotGarbage {
     __device__ bool operator()(int val) const { return val != -27; }
@@ -76,43 +75,25 @@ void remove_garbage(rmm::device_uvector<int> &buffer, cudaStream_t stream)
 //     CUDA_CHECK_ERROR(cudaGetLastError());
 // }
 
-
-// 1. Le Functor : C'est la logique qui s'applique à chaque élément
-struct PatternCorrectionFunctor
+struct pattern_functor
 {
     __host__ __device__
-    int operator()(const int& pixel_val, const size_t& idx) const
+    int operator()(int value, size_t idx) const
     {
-        // Optimisation : idx % 4 est équivalent à idx & 3 pour les puissances de 2.
-        // C'est plus rapide qu'une division entière sur GPU.
-        int adjustment = 0;
-        
-        // On hardcode les valeurs pour éviter des accès mémoire globaux inutiles
-        switch (idx & 3) { 
-            case 0: adjustment =  1; break;
-            case 1: adjustment = -5; break;
-            case 2: adjustment =  3; break;
-            case 3: adjustment = -8; break;
-        }
-
-        return pixel_val + adjustment;
+        const int adjustments[4] = {1, -5, 3, -8};
+        return value + adjustments[idx & 3];
     }
 };
 
 void apply_pattern_treatment(rmm::device_uvector<int> &buffer, cudaStream_t stream)
 {
-    // 2. Création des itérateurs
-    // Pointeur brut vers le début du buffer RMM converti en itérateur Thrust
-    raft::device_span<int> d_ptr = buffer.data();
-    size_t n = buffer.size();
-        
     thrust::transform(
         thrust::cuda::par.on(stream),
-        d_ptr,
-        d_ptr + n,
-        thrust::counting_iterator<size_t>(0),
-        d_ptr,
-        PatternCorrectionFunctor()
+        buffer.begin(),
+        buffer.end(),
+        thrust::make_counting_iterator<size_t>(0),
+        buffer.begin(),
+        pattern_functor()
     );
 }
 
