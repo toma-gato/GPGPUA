@@ -103,21 +103,16 @@ void apply_pattern_treatment(rmm::device_uvector<int> &buffer, cudaStream_t stre
 {
     // 2. Création des itérateurs
     // Pointeur brut vers le début du buffer RMM converti en itérateur Thrust
-    auto data_begin = thrust::device_pointer_cast(buffer.data());
-    auto data_end   = thrust::device_pointer_cast(buffer.data() + buffer.size());
-    
-    // Un itérateur qui génère 0, 1, 2, 3... à la volée sans tableau en mémoire
-    thrust::counting_iterator<size_t> index_begin(0);
-
-    // 3. Appel de Transform (Version Industrielle)
-    // On utilise `thrust::cuda::par.on(stream)` pour que Thrust respecte ton stream CUDA
+    raft::device_span<int> d_ptr = buffer.data();
+    size_t n = buffer.size();
+        
     thrust::transform(
-        thrust::cuda::par.on(stream), // Politique d'exécution (Asynchrone sur le stream)
-        data_begin,                   // Input 1 : Les pixels
-        data_end,                     // Fin Input 1
-        index_begin,                  // Input 2 : Les indices
-        data_begin,                   // Output : On écrase les pixels (In-place)
-        PatternCorrectionFunctor()    // L'opération à effectuer
+        thrust::cuda::par.on(stream),
+        d_ptr,
+        d_ptr + n,
+        thrust::counting_iterator<size_t>(0),
+        d_ptr,
+        PatternCorrectionFunctor()
     );
 }
 
