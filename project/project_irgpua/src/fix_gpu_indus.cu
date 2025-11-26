@@ -4,6 +4,10 @@
 
 #include <cub/cub.cuh>
 #include <raft/core/device_span.hpp>
+#include <thrust/transform.h>
+#include <thrust/iterator/counting_iterator.h>
+#include <thrust/execution_policy.h>
+#include <rmm/device_uvector.hpp>
 
 struct NotGarbage {
     __device__ bool operator()(int val) const { return val != -27; }
@@ -46,31 +50,75 @@ void remove_garbage(rmm::device_uvector<int> &buffer, cudaStream_t stream)
     buffer.resize(num_selected, stream);
 }
 
-__global__ void apply_pattern_kernel_optimized(raft::device_span<int> data, size_t n)
+// __global__ void apply_pattern_kernel_optimized(raft::device_span<int> data, size_t n)
+// {
+//     const int adjustments[4] = {1, -5, 3, -8};
+    
+//     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    
+//     if (idx < n)
+//     {
+//         data[idx] += adjustments[idx % 4];
+//     }
+// }
+
+// void apply_pattern_treatment(rmm::device_uvector<int> &buffer, cudaStream_t stream)
+// {
+//     size_t n = buffer.size();
+    
+//     int threads_per_block = 256;
+//     int num_blocks = (n + threads_per_block - 1) / threads_per_block;
+    
+//     apply_pattern_kernel_optimized<<<num_blocks, threads_per_block, 0, stream>>>(
+//         raft::device_span<int>(buffer.data(), buffer.size()), n
+//     );
+    
+//     CUDA_CHECK_ERROR(cudaGetLastError());
+// }
+
+
+// 1. Le Functor : C'est la logique qui s'applique à chaque élément
+struct PatternCorrectionFunctor
 {
-    //const int adjustments[4] = {1, -5, 3, -8};
-    const int adjustments[4] = {-1, 5, -3, 8};
-    
-    size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-    
-    if (idx < n)
+    __host__ __device__
+    int operator()(const int& pixel_val, const size_t& idx) const
     {
-        data[idx] += adjustments[idx % 4];
+        // Optimisation : idx % 4 est équivalent à idx & 3 pour les puissances de 2.
+        // C'est plus rapide qu'une division entière sur GPU.
+        int adjustment = 0;
+        
+        // On hardcode les valeurs pour éviter des accès mémoire globaux inutiles
+        switch (idx & 3) { 
+            case 0: adjustment =  1; break;
+            case 1: adjustment = -5; break;
+            case 2: adjustment =  3; break;
+            case 3: adjustment = -8; break;
+        }
+
+        return pixel_val + adjustment;
     }
-}
+};
 
 void apply_pattern_treatment(rmm::device_uvector<int> &buffer, cudaStream_t stream)
 {
-    size_t n = buffer.size();
+    // 2. Création des itérateurs
+    // Pointeur brut vers le début du buffer RMM converti en itérateur Thrust
+    auto data_begin = thrust::device_pointer_cast(buffer.data());
+    auto data_end   = thrust::device_pointer_cast(buffer.data() + buffer.size());
     
-    int threads_per_block = 256;
-    int num_blocks = (n + threads_per_block - 1) / threads_per_block;
-    
-    apply_pattern_kernel_optimized<<<num_blocks, threads_per_block, 0, stream>>>(
-        raft::device_span<int>(buffer.data(), buffer.size()), n
+    // Un itérateur qui génère 0, 1, 2, 3... à la volée sans tableau en mémoire
+    thrust::counting_iterator<size_t> index_begin(0);
+
+    // 3. Appel de Transform (Version Industrielle)
+    // On utilise `thrust::cuda::par.on(stream)` pour que Thrust respecte ton stream CUDA
+    thrust::transform(
+        thrust::cuda::par.on(stream), // Politique d'exécution (Asynchrone sur le stream)
+        data_begin,                   // Input 1 : Les pixels
+        data_end,                     // Fin Input 1
+        index_begin,                  // Input 2 : Les indices
+        data_begin,                   // Output : On écrase les pixels (In-place)
+        PatternCorrectionFunctor()    // L'opération à effectuer
     );
-    
-    CUDA_CHECK_ERROR(cudaGetLastError());
 }
 
 // Kernel pour appliquer la transformation d'égalisation
