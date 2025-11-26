@@ -24,7 +24,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    int* expected_images_total[29] = {
+    int expected_images_total[29] = {
         27805567,
         185010925,
         342970490,
