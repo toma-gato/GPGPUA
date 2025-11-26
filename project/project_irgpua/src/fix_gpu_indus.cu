@@ -48,7 +48,8 @@ void remove_garbage(rmm::device_uvector<int> &buffer, cudaStream_t stream)
 
 __global__ void apply_pattern_kernel_optimized(raft::device_span<int> data, size_t n)
 {
-    const int adjustments[4] = {1, -5, 3, -8};
+    //const int adjustments[4] = {1, -5, 3, -8};
+    const int adjustments[4] = {-1, 5, -3, 8};
     
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     
