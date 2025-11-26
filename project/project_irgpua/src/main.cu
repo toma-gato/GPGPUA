@@ -65,7 +65,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         std::vector<rmm::device_uvector<int>> d_buffers;
         d_buffers.reserve(nb_images);
 
-        #pragma omp parallel for
         for (int i = 0; i < nb_images; ++i)
         {
             images[i] = pipeline.get_image(i);
@@ -104,7 +103,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     #ifdef USE_GPU
         rmm::device_uvector<int> d_results(nb_images, streams[0]);
 
-        #pragma omp parallel for
         for (int i = 0; i < nb_images; ++i)
         {
             const int image_size = images[i].width * images[i].height;
