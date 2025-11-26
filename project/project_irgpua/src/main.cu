@@ -105,7 +105,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         #pragma omp parallel for
         for (int i = 0; i < nb_images; ++i)
         {
-            const int image_size = image[i].width * image[i].height;
+            const int image_size = images[i].width * images[i].height;
             cudaStream_t stream = streams[i % num_streams];
 
             thrust::device_ptr<int> result_ptr = thrust::device_pointer_cast(d_results.data() + i);
@@ -116,9 +116,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
                 d_buffers[i].data() + image_size,
                 0,
                 thrust::plus<int>()
-            );
-            
-            images[i].to_sort.total = total;
+            );            
         }
         for (auto& stream : streams)
         {
