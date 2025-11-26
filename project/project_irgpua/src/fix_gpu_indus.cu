@@ -128,7 +128,7 @@ __global__ void find_cdf_min_kernel(const int* cumulative_histo, const int* hist
     }
 }
 
-void histogram_equalization_gpu_async(rmm::device_uvector<int> &buffer, cudaStream_t stream)
+void histogram_equalization(rmm::device_uvector<int> &buffer, cudaStream_t stream)
 {
     size_t n = buffer.size();
     const int num_bins = 256;
@@ -192,7 +192,7 @@ void histogram_equalization_gpu_async(rmm::device_uvector<int> &buffer, cudaStre
 
 void fix_image_gpu_indus(rmm::device_uvector<int> &buffer, cudaStream_t stream)
 {
-    remove_garbage_async(buffer, stream);
-    apply_pattern_treatment_async(buffer, stream);
-    histogram_equalization_gpu_async(buffer, stream);    
+    remove_garbage(buffer, stream);
+    apply_pattern_treatment(buffer, stream);
+    histogram_equalization(buffer, stream);    
 }
