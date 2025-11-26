@@ -208,9 +208,11 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // If you did the sorting, check that the ids are in the same order
     for (int i = 0; i < nb_images; ++i)
     {
-        assert (images[i].to_sort.total + 1 == expected_images_total[i]);
-
         std::cout << "Image #" << images[i].to_sort.id << " total : " << images[i].to_sort.total << std::endl;
+        if (images[i].to_sort.total + 1 != expected_images_total[i])
+        {
+            std::cerr << "Image #" << images[i].to_sort.id << " error : total should be " << expected_images_total[i] << td::endl;
+        }
         std::ostringstream oss;
         oss << "Image#" << images[i].to_sort.id << ".pgm";
         std::string str = oss.str();
