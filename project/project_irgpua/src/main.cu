@@ -55,7 +55,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
         29256842,
         25803206,
         34550754
-    }
+    };
 
     #ifdef USE_GPU
         std::cout << "Using GPU..." << std::endl;
