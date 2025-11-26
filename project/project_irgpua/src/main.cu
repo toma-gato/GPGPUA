@@ -85,14 +85,33 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     // TODO : make it GPU compatible (aka faster)
     // You can use multiple CPU threads for your GPU version using openmp or not
     // Up to you :)
-    #pragma omp parallel for
-    for (int i = 0; i < nb_images; ++i)
-    {
-        auto& image = images[i];
-        const int image_size = image.width * image.height;
-        
-        image.to_sort.total = std::reduce(image.buffer, image.buffer + image_size, 0);
-    }
+    #ifdef USE_GPU        std::vector<int> h_results(nb_images);
+        #pragma omp parallel for
+        for (int i = 0; i < nb_images; ++i)
+        {
+            auto& image = images[i];
+            const int image_size = image.width * image.height;
+            
+            int total = thrust::reduce(
+                thrust::cuda::par.on(stream),
+                image.buffer.begin(),
+                image.buffer.end(),
+                0,
+                thrust::plus<int>()
+            );
+            
+            images[i].to_sort.total = total;
+        }
+    #else
+        #pragma omp parallel for
+        for (int i = 0; i < nb_images; ++i)
+        {
+            auto& image = images[i];
+            const int image_size = image.width * image.height;
+            
+            image.to_sort.total = std::reduce(image.buffer, image.buffer + image_size, 0);
+        }
+    #endif
 
     // - All totals are known, sort images accordingly (OPTIONAL)
     // Moving the actual images is too expensive, sort image indices instead
