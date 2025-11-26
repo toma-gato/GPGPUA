@@ -40,13 +40,14 @@ void remove_garbage(rmm::device_uvector<int> &buffer, cudaStream_t stream)
         stream
     );
     
-    int num_selected = n_selected.element(0, stream);
+    int num_selected;
     
-    cudaMemcpyAsync(buffer.data(), temp.data(), num_selected * sizeof(int), 
-                    cudaMemcpyDeviceToDevice, stream);
+    cudaMemcpyAsync(&num_selected, n_selected.data(), sizeof(int), cudaMemcpyDeviceToHost, stream);
     cudaStreamSynchronize(stream);
     
+    cudaMemcpyAsync(buffer.data(), temp.data(), num_selected * sizeof(int), cudaMemcpyDeviceToDevice, stream);
     buffer.resize(num_selected, stream);
+
 }
 
 // __global__ void apply_pattern_kernel_optimized(raft::device_span<int> data, size_t n)
@@ -97,7 +98,6 @@ void apply_pattern_treatment(rmm::device_uvector<int> &buffer, cudaStream_t stre
     );
 }
 
-// Kernel pour appliquer la transformation d'égalisation
 __global__ void apply_histogram_equalization_kernel(
     int* data, 
     size_t n, 
@@ -110,78 +110,53 @@ __global__ void apply_histogram_equalization_kernel(
     if (idx < n)
     {
         int pixel = data[idx];
-        // Formule d'égalisation d'histogramme
+        pixel = min(max(pixel, 0), 255);
         float normalized = ((cumulative_histo[pixel] - cdf_min) / 
                            static_cast<float>(total_pixels - cdf_min)) * 255.0f;
         data[idx] = static_cast<int>(roundf(normalized));
     }
 }
 
-// Kernel pour trouver le premier élément non-zéro
-__global__ void find_first_nonzero_kernel(const int* histo, int* result, int size)
+// Kernel optimisé pour trouver le minimum
+__global__ void find_cdf_min_kernel(const int* cumulative_histo, const int* histogram, int* cdf_min, int size)
 {
-    __shared__ int found;
-    __shared__ int min_idx;
-    
-    if (threadIdx.x == 0)
-    {
-        found = 0;
-        min_idx = size;
-    }
-    __syncthreads();
-    
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     
-    if (idx < size && histo[idx] != 0)
+    if (idx < size && histogram[idx] > 0)
     {
-        atomicMin(&min_idx, idx);
-        atomicExch(&found, 1);
-    }
-    __syncthreads();
-    
-    if (threadIdx.x == 0 && found)
-    {
-        atomicMin(result, min_idx);
+        atomicMin(cdf_min, cumulative_histo[idx]);
     }
 }
 
-void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t stream)
+void histogram_equalization_gpu_async(rmm::device_uvector<int> &buffer, cudaStream_t stream)
 {
     size_t n = buffer.size();
-    
-    // Étape 1 : Calculer l'histogramme avec CUB
     const int num_bins = 256;
-    const int lower_level = 0;
-    const int upper_level = 256;
     
+    // Étape 1 : Histogramme
     rmm::device_uvector<int> histogram(num_bins, stream);
     
-    // Calculer la taille du stockage temporaire pour l'histogramme
     void* d_temp_storage = nullptr;
     size_t temp_storage_bytes = 0;
     cub::DeviceHistogram::HistogramEven(
         d_temp_storage, temp_storage_bytes,
         buffer.data(), histogram.data(),
-        num_bins + 1, lower_level, upper_level,
-        n, stream
+        num_bins + 1, 0, 256, n, stream
     );
     
-    // Allouer et calculer l'histogramme
     rmm::device_uvector<char> temp_storage_histo(temp_storage_bytes, stream);
     cub::DeviceHistogram::HistogramEven(
         temp_storage_histo.data(), temp_storage_bytes,
         buffer.data(), histogram.data(),
-        num_bins + 1, lower_level, upper_level,
-        n, stream
+        num_bins + 1, 0, 256, n, stream
     );
     
-    // Étape 2 : Calculer le scan inclusif (somme cumulative) avec CUB
+    // Étape 2 : Scan inclusif
     rmm::device_uvector<int> cumulative_histo(num_bins, stream);
     
-    d_temp_storage = nullptr;
     temp_storage_bytes = 0;
     cub::DeviceScan::InclusiveSum(
-        d_temp_storage, temp_storage_bytes,
+        nullptr, temp_storage_bytes,
         histogram.data(), cumulative_histo.data(),
         num_bins, stream
     );
@@ -193,50 +168,31 @@ void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t s
         num_bins, stream
     );
     
-    // Étape 3 : Trouver le premier élément non-zéro (cdf_min)
+    // Étape 3 : Trouver cdf_min de manière plus efficace
     rmm::device_uvector<int> d_cdf_min(1, stream);
-    
-    // Initialiser à une valeur élevée
-    int init_value = num_bins;
+    int init_value = INT_MAX;
     cudaMemcpyAsync(d_cdf_min.data(), &init_value, sizeof(int), 
                     cudaMemcpyHostToDevice, stream);
     
     int threads = 256;
     int blocks = (num_bins + threads - 1) / threads;
-    find_first_nonzero_kernel<<<blocks, threads, 0, stream>>>(
-        cumulative_histo.data(), d_cdf_min.data(), num_bins
-    );
+    find_cdf_min_kernel<<<blocks, threads, 0, stream>>>(cumulative_histo.data(), histogram.data(), d_cdf_min.data(), num_bins);
     
-    // Récupérer l'index du premier non-zéro
-    int first_nonzero_idx = d_cdf_min.element(0, stream);
+    int cdf_min;
+    cudaMemcpyAsync(&cdf_min, d_cdf_min.data(), sizeof(int), cudaMemcpyDeviceToHost, stream);
+    cudaStreamSynchronize(stream);
     
-    // Récupérer la valeur cdf_min
-    rmm::device_uvector<int> d_cdf_min_value(1, stream);
-    cudaMemcpyAsync(d_cdf_min_value.data(), 
-                    cumulative_histo.data() + first_nonzero_idx, 
-                    sizeof(int), cudaMemcpyDeviceToDevice, stream);
-    int cdf_min = d_cdf_min_value.element(0, stream);
-        
-    // Étape 4 : Appliquer la transformation d'égalisation
-    threads = 256;
     blocks = (n + threads - 1) / threads;
-    
     apply_histogram_equalization_kernel<<<blocks, threads, 0, stream>>>(
         buffer.data(), n, cumulative_histo.data(), cdf_min, static_cast<int>(n)
     );
     
     CUDA_CHECK_ERROR(cudaGetLastError());
-    cudaStreamSynchronize(stream);
 }
-
 
 void fix_image_gpu_indus(rmm::device_uvector<int> &buffer, cudaStream_t stream)
 {
-    remove_garbage(buffer, stream);
-
-    apply_pattern_treatment(buffer, stream);
-
-    histogram_equalization_gpu(buffer, stream);
-
-    CUDA_CHECK_ERROR(cudaStreamSynchronize(stream));
+    remove_garbage_async(buffer, stream);
+    apply_pattern_treatment_async(buffer, stream);
+    histogram_equalization_gpu_async(buffer, stream);    
 }
