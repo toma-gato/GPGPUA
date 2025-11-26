@@ -13,6 +13,8 @@
 #include <rmm/device_uvector.hpp>
 #include <thrust/reduce.h>
 #include <thrust/execution_policy.h>
+#include <thrust/device_ptr.h>
+
 
 #include <chrono>
 
