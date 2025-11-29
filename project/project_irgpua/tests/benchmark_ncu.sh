@@ -20,7 +20,7 @@ for s in "${NCU_SECTIONS[@]}"; do
 done
 
 sudo ncu -o "bench_v${VERSION}" "${section_args[@]}" \
-	-k "regex:.*(regex|scan|histogram|histogram_kernel|build_inclusive_cdf|build_lut|apply_lut|histogram_equalize_byhand).*" \
+	-k "regex:.*(regex|scan|propagate|histogram|histogram_kernel|build_inclusive_cdf|build_lut|apply_lut|histogram_equalize_byhand).*" \
 	"$PROGRAM_PATH"
 
 cd -
