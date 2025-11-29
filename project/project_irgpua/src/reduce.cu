@@ -47,30 +47,3 @@ __global__ void reduce_final(cuda::std::span<int> d_data, cuda::std::span<int> d
         d_result[0] = s_data[0];
     }
 }
-
-int reduce_byhand(rmm::device_vector<int> &d_data)
-{
-    size_t num_elements = d_data.size();
-
-    size_t block_size = 256;
-    size_t block_count = (num_elements + block_size - 1) / block_size;
-
-    cuda::std::span<int> d_data_span(thrust::raw_pointer_cast(d_data.data()), d_data.size());
-
-    rmm::device_vector<int> d_intermediate(block_count, 0);
-    cuda::std::span<int> d_intermediate_span(thrust::raw_pointer_cast(d_intermediate.data()), d_intermediate.size());
-
-    rmm::device_vector<int> d_result(1, 0);
-    cuda::std::span<int> d_result_span(thrust::raw_pointer_cast(d_result.data()), 1);
-
-    reduce_block<<<block_count, block_size, block_size * sizeof(int)>>>(d_data_span, d_intermediate_span);
-    cudaDeviceSynchronize();
-
-    reduce_final<<<1, block_size, block_size * sizeof(int)>>>(d_intermediate_span, d_result_span);
-    cudaDeviceSynchronize();
-
-    int result = 0;
-    cudaMemcpy(&result, thrust::raw_pointer_cast(d_result.data()), sizeof(int), cudaMemcpyDeviceToHost);
-
-    return result;
-}

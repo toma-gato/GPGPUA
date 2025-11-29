@@ -21,7 +21,7 @@ void fix_image_gpu(rmm::device_vector<int> &buffer)
 {
     // #1 Compact
     rmm::device_vector<int> d_compact_result(buffer.size());
-    compact_byhand(buffer, d_compact_result, -27);
+    compact_byhand<256>(buffer, d_compact_result, -27);
     cudaDeviceSynchronize();
 
     // #2 Apply pattern
