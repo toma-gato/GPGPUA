@@ -3,3 +3,10 @@ build/
 *.o
 *.a
 *.so
+
+# Report files
+*.nsys-rep
+*.ncu-rep
+
+# Images
+*.pgm
