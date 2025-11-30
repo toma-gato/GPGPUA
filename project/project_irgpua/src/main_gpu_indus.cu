@@ -1,6 +1,5 @@
 #include "image.hh"
 #include "pipeline.hh"
-#include "fix_cpu.cuh"
 #include "fix_gpu_indus.cuh"
 
 #include <vector>
@@ -9,20 +8,56 @@
 #include <sstream>
 #include <filesystem>
 #include <numeric>
+#include <cassert>
 
-#include "fix_gpu.cuh"
-
+#include <rmm/device_uvector.hpp>
+#include <thrust/reduce.h>
+#include <thrust/execution_policy.h>
 #include <thrust/device_ptr.h>
+
 
 #include <chrono>
 
-int main(int argc, char *argv[])
+int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
     // -- Pipeline initialization
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Using GPU indus..." << std::endl;
+    int expected_images_total[30] = {
+        27805567,
+        185010925,
+        342970490,
+        33055988,
+        390348481,
+        91297791,
+        10825197,
+        118842538,
+        72434629,
+        191735142,
+        182802772,
+        78632198,
+        491605096,
+        8109782,
+        111786760,
+        406461934,
+        80671811,
+        70004942,
+        104275727,
+        30603818,
+        6496225,
+        207334021,
+        268424419,
+        432916359,
+        51973720,
+        24489209,
+        80124196,
+        29256842,
+        25803206,
+        34550754
+    };
+
+    std::cout << "Using GPU..." << std::endl;
     std::cout << "File loading..." << std::endl;
 
     // - Get file paths
@@ -58,40 +93,82 @@ int main(int argc, char *argv[])
 
     std::cout << "Done, starting compute" << std::endl;
 
-#pragma omp parallel for
+    const int num_streams = std::min(nb_images, 16);
+
+    std::vector<cudaStream_t> streams(num_streams);
+    for (int i = 0; i < num_streams; ++i)
+    {
+        cudaStreamCreate(&streams[i]);
+    }
+    
+    std::vector<rmm::device_uvector<int>> d_buffers;
+    d_buffers.reserve(nb_images);
+
     for (int i = 0; i < nb_images; ++i)
     {
         images[i] = pipeline.get_image(i);
         size_t elems = static_cast<size_t>(images[i].size());
+        cudaStream_t stream = streams[i % num_streams];
 
-        rmm::device_uvector<int> d_buf(elems, rmm::cuda_stream_default);
-        cudaMemcpyAsync(d_buf.data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+        d_buffers.emplace_back(elems, stream);
 
-        fix_image_gpu_indus(d_buf, rmm::cuda_stream_default);
-
-        size_t new_elems = d_buf.size();
-        cudaMemcpyAsync(images[i].buffer, d_buf.data(), new_elems * sizeof(int), cudaMemcpyDeviceToHost, rmm::cuda_stream_default);
-        cudaStreamSynchronize(rmm::cuda_stream_default);
+        cudaMemcpyAsync(d_buffers[i].data(), images[i].buffer, elems * sizeof(int), cudaMemcpyHostToDevice, stream);
+        
+        fix_image_gpu_indus(d_buffers[i], stream);
+    }
+    for (auto& stream : streams)
+    {
+        cudaStreamSynchronize(stream);
     }
 
     std::cout << "Done with compute, starting stats" << std::endl;
 
-// -- All images are now fixed : compute stats (total then sort)
+    // -- All images are now fixed : compute stats (total then sort)
 
-// - First compute the total of each image
+    // - First compute the total of each image
 
-// TODO : make it GPU compatible (aka faster)
-// You can use multiple CPU threads for your GPU version using openmp or not
-// Up to you :)
-#pragma omp parallel for
+    // TODO : make it GPU compatible (aka faster)
+    // You can use multiple CPU threads for your GPU version using openmp or not
+    // Up to you :)
+    rmm::device_uvector<int> d_results(nb_images, streams[0]);
+
     for (int i = 0; i < nb_images; ++i)
     {
-        auto &image = images[i];
-        const int image_size = image.width * image.height;
+        const int image_size = images[i].width * images[i].height;
+        cudaStream_t stream = streams[i % num_streams];
 
-        image.to_sort.total = std::reduce(image.buffer, image.buffer + image_size, 0);
+        thrust::device_ptr<int> result_ptr = thrust::device_pointer_cast(d_results.data() + i);
+        
+        *result_ptr = thrust::reduce(
+            thrust::cuda::par.on(stream),
+            d_buffers[i].data(),
+            d_buffers[i].data() + image_size,
+            0,
+            thrust::plus<int>()
+        );            
+    }
+    for (auto& stream : streams)
+    {
+        cudaStreamSynchronize(stream);
     }
 
+    std::vector<int> h_results(nb_images);
+    cudaMemcpy(h_results.data(), d_results.data(), 
+                nb_images * sizeof(int), cudaMemcpyDeviceToHost);
+    
+    // Copier les images fixées
+    for (int i = 0; i < nb_images; ++i)
+    {
+        size_t new_elems = d_buffers[i].size();
+        cudaMemcpy(images[i].buffer, d_buffers[i].data(), 
+                    new_elems * sizeof(int), cudaMemcpyDeviceToHost);
+        images[i].to_sort.total = h_results[i];
+    }
+
+    for (auto& stream : streams)
+    {
+        cudaStreamDestroy(stream);
+    }
     // - All totals are known, sort images accordingly (OPTIONAL)
     // Moving the actual images is too expensive, sort image indices instead
     // Copying to an id array and sort it instead
@@ -100,12 +177,15 @@ int main(int argc, char *argv[])
     // But just like the CPU version, moving the actual images while sorting will be too slow
     using ToSort = Image::ToSort;
     std::vector<ToSort> to_sort(nb_images);
-    std::generate(to_sort.begin(), to_sort.end(), [n = 0, images]() mutable
-                  { return images[n++].to_sort; });
+    std::generate(to_sort.begin(), to_sort.end(), [n = 0, images] () mutable
+    {
+        return images[n++].to_sort;
+    });
 
     // TODO OPTIONAL : make it GPU compatible (aka faster)
-    std::sort(to_sort.begin(), to_sort.end(), [](ToSort a, ToSort b)
-              { return a.total < b.total; });
+    std::sort(to_sort.begin(), to_sort.end(), [](ToSort a, ToSort b) {
+        return a.total < b.total;
+    });
 
     // TODO : Test here that you have the same results
     // You can compare visually and should compare image vectors values and "total" values
@@ -113,6 +193,10 @@ int main(int argc, char *argv[])
     for (int i = 0; i < nb_images; ++i)
     {
         std::cout << "Image #" << images[i].to_sort.id << " total : " << images[i].to_sort.total << std::endl;
+        if (images[i].to_sort.total != expected_images_total[i])
+        {
+            std::cerr << "Image #" << images[i].to_sort.id << " error : total should be " << expected_images_total[i] << std::endl;
+        }
         std::ostringstream oss;
         oss << "Image#" << images[i].to_sort.id << ".pgm";
         std::string str = oss.str();
@@ -123,8 +207,7 @@ int main(int argc, char *argv[])
 
     // Cleaning
     // TODO : Don't forget to update this if you change allocation style
-    for (int i = 0; i < nb_images; ++i)
-    {
+    for (int i = 0; i < nb_images; ++i) {
         free(images[i].buffer);
     }
 

@@ -1,9 +1,11 @@
 #include "fix_gpu_indus.cuh"
-
 #include "../cuda_tools/cuda_error_checking.cuh"
 
 #include <cub/cub.cuh>
 #include <raft/core/device_span.hpp>
+#include <thrust/transform.h>
+#include <thrust/execution_policy.h>
+#include <thrust/iterator/counting_iterator.h>
 
 struct NotGarbage {
     __device__ bool operator()(int val) const { return val != -27; }
@@ -37,57 +39,47 @@ void remove_garbage(rmm::device_uvector<int> &buffer, cudaStream_t stream)
         stream
     );
     
-    int num_selected = n_selected.element(0, stream);
+    int num_selected;
     
-    cudaMemcpyAsync(buffer.data(), temp.data(), num_selected * sizeof(int), 
-                    cudaMemcpyDeviceToDevice, stream);
+    cudaMemcpyAsync(&num_selected, n_selected.data(), sizeof(int), cudaMemcpyDeviceToHost, stream);
     cudaStreamSynchronize(stream);
     
+    cudaMemcpyAsync(buffer.data(), temp.data(), num_selected * sizeof(int), cudaMemcpyDeviceToDevice, stream);
     buffer.resize(num_selected, stream);
+
 }
 
-__global__ void apply_pattern_kernel_optimized(raft::device_span<int> data, size_t n)
+struct pattern_functor
 {
-    const int adjustments[4] = {1, -5, 3, -8};
-    
-    size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-    
-    if (idx < n)
+    __host__ __device__
+    int operator()(int value, size_t idx) const
     {
-        data[idx] += adjustments[idx % 4];
+        const int adjustments[4] = {1, -5, 3, -8};
+        return value + adjustments[idx & 3];
     }
-}
+};
 
 void apply_pattern_treatment(rmm::device_uvector<int> &buffer, cudaStream_t stream)
 {
-    size_t n = buffer.size();
-    
-    int threads_per_block = 256;
-    int num_blocks = (n + threads_per_block - 1) / threads_per_block;
-    
-    apply_pattern_kernel_optimized<<<num_blocks, threads_per_block, 0, stream>>>(
-        raft::device_span<int>(buffer.data(), buffer.size()), n
+    thrust::transform(
+        thrust::cuda::par.on(stream),
+        buffer.begin(),
+        buffer.end(),
+        thrust::make_counting_iterator<size_t>(0),
+        buffer.begin(),
+        pattern_functor()
     );
-    
-    CUDA_CHECK_ERROR(cudaGetLastError());
 }
 
 // Kernel pour appliquer la transformation d'égalisation
-__global__ void apply_histogram_equalization_kernel(
-    int* data, 
-    size_t n, 
-    const int* cumulative_histo,
-    int cdf_min,
-    int total_pixels)
+__global__ void apply_histogram_equalization_kernel(int* data, size_t n, const int* cumulative_histo, int cdf_min, int total_pixels)
 {
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     
     if (idx < n)
     {
         int pixel = data[idx];
-        // Formule d'égalisation d'histogramme
-        float normalized = ((cumulative_histo[pixel] - cdf_min) / 
-                           static_cast<float>(total_pixels - cdf_min)) * 255.0f;
+        float normalized = ((cumulative_histo[pixel] - cdf_min) / static_cast<float>(total_pixels - cdf_min)) * 255.0f;
         data[idx] = static_cast<int>(roundf(normalized));
     }
 }
@@ -124,7 +116,7 @@ void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t s
 {
     size_t n = buffer.size();
     
-    // Étape 1 : Calculer l'histogramme avec CUB
+    // Calculer l'histogramme avec CUB
     const int num_bins = 256;
     const int lower_level = 0;
     const int upper_level = 256;
@@ -150,7 +142,7 @@ void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t s
         n, stream
     );
     
-    // Étape 2 : Calculer le scan inclusif (somme cumulative) avec CUB
+    // Calculer le scan inclusif avec CUB
     rmm::device_uvector<int> cumulative_histo(num_bins, stream);
     
     d_temp_storage = nullptr;
@@ -168,7 +160,7 @@ void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t s
         num_bins, stream
     );
     
-    // Étape 3 : Trouver le premier élément non-zéro (cdf_min)
+    // Trouver le premier élément non-zéro
     rmm::device_uvector<int> d_cdf_min(1, stream);
     
     // Initialiser à une valeur élevée
@@ -192,7 +184,7 @@ void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t s
                     sizeof(int), cudaMemcpyDeviceToDevice, stream);
     int cdf_min = d_cdf_min_value.element(0, stream);
         
-    // Étape 4 : Appliquer la transformation d'égalisation
+    // Appliquer la transformation d'égalisation
     threads = 256;
     blocks = (n + threads - 1) / threads;
     

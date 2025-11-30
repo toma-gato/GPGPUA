@@ -2,4 +2,14 @@
 
 #include <rmm/device_uvector.hpp>
 
-void fix_image_gpu_indus(rmm::device_uvector<int>& buffer, cudaStream_t stream);
+void remove_garbage(rmm::device_uvector<int> &buffer, cudaStream_t stream);
+
+void apply_pattern_treatment(rmm::device_uvector<int> &buffer, cudaStream_t stream);
+
+__global__ void apply_histogram_equalization_kernel(int* data, size_t n, const int* cumulative_histo, int cdf_min, int total_pixels);
+
+__global__ void find_first_nonzero_kernel(const int* histo, int* result, int size);
+
+void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t stream);
+
+void fix_image_gpu_indus(rmm::device_uvector<int> &buffer, cudaStream_t stream);
