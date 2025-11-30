@@ -120,15 +120,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     }
 
     std::vector<int> h_results(nb_images);
-    cudaMemcpy(h_results.data(), d_results.data(), 
-                nb_images * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_results.data(), d_results.data(), nb_images * sizeof(int), cudaMemcpyDeviceToHost);
     
     // Copier les images fixées
     for (int i = 0; i < nb_images; ++i)
     {
         size_t new_elems = d_buffers[i].size();
-        cudaMemcpy(images[i].buffer, d_buffers[i].data(), 
-                    new_elems * sizeof(int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(images[i].buffer, d_buffers[i].data(), new_elems * sizeof(int), cudaMemcpyDeviceToHost);
         images[i].to_sort.total = h_results[i];
     }
 

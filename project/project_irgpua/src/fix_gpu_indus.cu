@@ -165,32 +165,25 @@ void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t s
     
     // Initialiser à une valeur élevée
     int init_value = num_bins;
-    cudaMemcpyAsync(d_cdf_min.data(), &init_value, sizeof(int), 
-                    cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(d_cdf_min.data(), &init_value, sizeof(int), cudaMemcpyHostToDevice, stream);
     
     int threads = 256;
     int blocks = (num_bins + threads - 1) / threads;
-    find_first_nonzero_kernel<<<blocks, threads, 0, stream>>>(
-        cumulative_histo.data(), d_cdf_min.data(), num_bins
-    );
+    find_first_nonzero_kernel<<<blocks, threads, 0, stream>>>(cumulative_histo.data(), d_cdf_min.data(), num_bins);
     
     // Récupérer l'index du premier non-zéro
     int first_nonzero_idx = d_cdf_min.element(0, stream);
     
     // Récupérer la valeur cdf_min
     rmm::device_uvector<int> d_cdf_min_value(1, stream);
-    cudaMemcpyAsync(d_cdf_min_value.data(), 
-                    cumulative_histo.data() + first_nonzero_idx, 
-                    sizeof(int), cudaMemcpyDeviceToDevice, stream);
+    cudaMemcpyAsync(d_cdf_min_value.data(), cumulative_histo.data() + first_nonzero_idx, sizeof(int), cudaMemcpyDeviceToDevice, stream);
     int cdf_min = d_cdf_min_value.element(0, stream);
         
     // Appliquer la transformation d'égalisation
     threads = 256;
     blocks = (n + threads - 1) / threads;
     
-    apply_histogram_equalization_kernel<<<blocks, threads, 0, stream>>>(
-        buffer.data(), n, cumulative_histo.data(), cdf_min, static_cast<int>(n)
-    );
+    apply_histogram_equalization_kernel<<<blocks, threads, 0, stream>>>(buffer.data(), n, cumulative_histo.data(), cdf_min, static_cast<int>(n));
     
     CUDA_CHECK_ERROR(cudaGetLastError());
     cudaStreamSynchronize(stream);
