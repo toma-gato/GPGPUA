@@ -16,7 +16,7 @@
 
 #include <chrono>
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
+int main(int argc, char *argv[])
 {
     // -- Pipeline initialization
 
@@ -29,9 +29,20 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
 
     using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
     std::vector<std::string> filepaths;
-    // for (const auto& dir_entry : recursive_directory_iterator("/afs/cri.epita.fr/resources/teach/IRGPUA/images"))
-    // for (const auto& dir_entry : recursive_directory_iterator("/home/thomas.galateau/image_test"))
-    for (const auto &dir_entry : recursive_directory_iterator("./images_projet"))
+    std::string images_dir = "./images_projet";
+    for (int ai = 1; ai < argc; ++ai)
+    {
+        std::string arg = argv[ai];
+        const std::string prefix = "--images-dir=";
+        if (arg.rfind(prefix, 0) == 0)
+            images_dir = arg.substr(prefix.size());
+        else if (arg == "-d" && ai + 1 < argc)
+            images_dir = argv[++ai];
+        else if (ai == 1)
+            images_dir = arg;
+    }
+
+    for (const auto &dir_entry : recursive_directory_iterator(images_dir))
         filepaths.emplace_back(dir_entry.path());
 
     // - Init pipeline object
