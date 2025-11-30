@@ -8,7 +8,6 @@
 
 #include "scan.cuh"
 
-// Simple histogram kernel: each thread processes a stride of elements
 __global__ void histogram_kernel(cuda::std::span<int> d_data, cuda::std::span<int> d_hist)
 {
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -25,7 +24,6 @@ __global__ void histogram_kernel(cuda::std::span<int> d_data, cuda::std::span<in
     }
 }
 
-// Build inclusive CDF: cdf[i] = exclusive[i] + hist[i]
 __global__ void build_inclusive_cdf(cuda::std::span<int> d_exclusive, cuda::std::span<int> d_hist, cuda::std::span<int> d_cdf)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -35,7 +33,6 @@ __global__ void build_inclusive_cdf(cuda::std::span<int> d_exclusive, cuda::std:
     }
 }
 
-// Build LUT from inclusive cdf, using cdf_min and total pixels N
 __global__ void build_lut(cuda::std::span<int> d_cdf, cuda::std::span<int> d_lut, int total_pixels, int cdf_min)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -56,14 +53,12 @@ __global__ void build_lut(cuda::std::span<int> d_cdf, cuda::std::span<int> d_lut
         }
         else
         {
-            // all pixels identical -> leave values unchanged
             mapped = i;
         }
         d_lut[i] = mapped;
     }
 }
 
-// Apply LUT to image in-place
 __global__ void apply_lut(cuda::std::span<int> d_data, cuda::std::span<int> d_lut)
 {
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;

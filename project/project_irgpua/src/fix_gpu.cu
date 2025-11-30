@@ -22,17 +22,14 @@ void fix_image_gpu(rmm::device_vector<int> &buffer)
     // #1 Compact
     rmm::device_vector<int> d_compact_result(buffer.size());
     int compacted_size = compact_byhand<256>(buffer, d_compact_result, -27);
-    cudaDeviceSynchronize();
 
     // #2 Apply pattern
-    const int threads_per_block = 256;
-    const int blocks = (compacted_size + threads_per_block - 1) / threads_per_block;
-    apply_pattern_kernel_optimized<<<blocks, threads_per_block>>>(cuda::std::span<int>(d_compact_result.data().get(), compacted_size));
-    cudaDeviceSynchronize();
+    constexpr size_t BLOCK_SIZE = 256;
+    const size_t GRID_SIZE = (compacted_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    apply_pattern_kernel_optimized<<<GRID_SIZE, BLOCK_SIZE>>>(cuda::std::span<int>(d_compact_result.data().get(), compacted_size));
 
     // #3 Histogram equalization (in-place)
     histogram_equalize_byhand(d_compact_result, static_cast<size_t>(compacted_size));
-    cudaDeviceSynchronize();
 
     buffer = d_compact_result;
 }

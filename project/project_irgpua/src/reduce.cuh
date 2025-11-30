@@ -4,7 +4,6 @@
 #include <rmm/device_vector.hpp>
 
 __global__ void reduce_block(cuda::std::span<int> d_data, cuda::std::span<int> d_output);
-__global__ void reduce_final(cuda::std::span<int> d_data, cuda::std::span<int> d_result);
 
 template <size_t BLOCK_SIZE = 256>
 __device__ void warp_reduce(cuda::std::span<int> sdata, int tid)
@@ -109,31 +108,33 @@ int reduce_byhand(rmm::device_vector<int> &d_data)
     constexpr size_t SHARED_MEMSIZE = BLOCK_SIZE * sizeof(int);
 
     size_t num_block = ((num_elements + (BLOCK_SIZE * 2) - 1) / (BLOCK_SIZE * 2));
-    rmm::device_vector<int> tmp(num_block);
+    rmm::device_vector<int> intermediate(num_block);
 
+    // #1 Partial reduction
     reduce_kernel<BLOCK_SIZE><<<num_block, BLOCK_SIZE,
                                 SHARED_MEMSIZE>>>(
         cuda::std::span<int>(thrust::raw_pointer_cast(d_data.data()), num_elements),
-        cuda::std::span<int>(thrust::raw_pointer_cast(tmp.data()), num_block));
+        cuda::std::span<int>(thrust::raw_pointer_cast(intermediate.data()), num_block));
 
     while (num_block > 1)
     {
-        size_t blocks = (num_block + (BLOCK_SIZE * 2) - 1) / (BLOCK_SIZE * 2);
+        // #2 Recursion
+        size_t new_num_block = (num_block + (BLOCK_SIZE * 2) - 1) / (BLOCK_SIZE * 2);
 
-        rmm::device_vector<int> tmp2(blocks);
+        rmm::device_vector<int> tmp(new_num_block);
 
-        reduce_kernel<BLOCK_SIZE><<<blocks, BLOCK_SIZE,
+        reduce_kernel<BLOCK_SIZE><<<new_num_block, BLOCK_SIZE,
                                     SHARED_MEMSIZE>>>(
-            cuda::std::span<int>(thrust::raw_pointer_cast(tmp.data()), num_block),
-            cuda::std::span<int>(thrust::raw_pointer_cast(tmp2.data()), blocks));
+            cuda::std::span<int>(thrust::raw_pointer_cast(intermediate.data()), num_block),
+            cuda::std::span<int>(thrust::raw_pointer_cast(tmp.data()), new_num_block));
 
-        tmp = std::move(tmp2);
-        num_block = blocks;
+        intermediate = std::move(tmp);
+        num_block = new_num_block;
     }
 
     int result = 0;
     cudaMemcpy(&result,
-               thrust::raw_pointer_cast(tmp.data()),
+               thrust::raw_pointer_cast(intermediate.data()),
                sizeof(int),
                cudaMemcpyDeviceToHost);
 

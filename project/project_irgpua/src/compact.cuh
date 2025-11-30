@@ -19,24 +19,23 @@ int compact_byhand(rmm::device_vector<int> &input, rmm::device_vector<int> &outp
     cuda::std::span<int> d_input_span(input.data().get(), input.size());
     cuda::std::span<int> d_predicate_span(d_predicate.data().get(), d_predicate.size());
 
+    // #1 Build predicate
     const size_t GRID_SIZE = (input.size() + BLOCK_SIZE - 1) / BLOCK_SIZE;
     predicate<<<GRID_SIZE, BLOCK_SIZE, 0>>>(d_input_span, d_predicate_span, flag);
-    cudaDeviceSynchronize();
 
+    // #2 Exclusive scan on predicate
     rmm::device_vector<int> d_scanned_predicate(input.size());
     exclusive_scan_byhand<BLOCK_SIZE>(d_predicate, d_scanned_predicate);
 
+    // #3 Scatter
     cuda::std::span<int> d_output_span(output.data().get(), output.size());
     cuda::std::span<int> d_scanned_predicate_span(d_scanned_predicate.data().get(), d_scanned_predicate.size());
     scatter<<<GRID_SIZE, BLOCK_SIZE, 0>>>(d_input_span, d_output_span, d_scanned_predicate_span, d_predicate_span);
-    cudaDeviceSynchronize();
 
-    // Determine compacted size: last_scanned + last_predicate
     int last_pred = 0;
     int last_scan = 0;
     if (input.size() > 0)
     {
-        // copy the last elements from device
         cudaMemcpy(&last_pred,
                    thrust::raw_pointer_cast(d_predicate.data()) + (input.size() - 1),
                    sizeof(int),
