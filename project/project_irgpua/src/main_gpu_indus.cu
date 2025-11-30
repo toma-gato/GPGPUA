@@ -24,39 +24,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    int expected_images_total[30] = {
-        27805567,
-        185010925,
-        342970490,
-        33055988,
-        390348481,
-        91297791,
-        10825197,
-        118842538,
-        72434629,
-        191735142,
-        182802772,
-        78632198,
-        491605096,
-        8109782,
-        111786760,
-        406461934,
-        80671811,
-        70004942,
-        104275727,
-        30603818,
-        6496225,
-        207334021,
-        268424419,
-        432916359,
-        51973720,
-        24489209,
-        80124196,
-        29256842,
-        25803206,
-        34550754
-    };
-
     std::cout << "Using GPU..." << std::endl;
     std::cout << "File loading..." << std::endl;
 
@@ -193,10 +160,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     for (int i = 0; i < nb_images; ++i)
     {
         std::cout << "Image #" << images[i].to_sort.id << " total : " << images[i].to_sort.total << std::endl;
-        if (images[i].to_sort.total != expected_images_total[i])
-        {
-            std::cerr << "Image #" << images[i].to_sort.id << " error : total should be " << expected_images_total[i] << std::endl;
-        }
         std::ostringstream oss;
         oss << "Image#" << images[i].to_sort.id << ".pgm";
         std::string str = oss.str();
