@@ -10,17 +10,37 @@
 
 __global__ void histogram_kernel(cuda::std::span<int> d_data, cuda::std::span<int> d_hist)
 {
+    __shared__ unsigned int s_hist[256];
+
+    const int tid = threadIdx.x;
+    const int block_threads = blockDim.x;
+
+    for (int b = tid; b < 256; b += block_threads)
+        s_hist[b] = 0u;
+    __syncthreads();
+
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     size_t stride = blockDim.x * gridDim.x;
 
-    for (size_t i = idx; i < (size_t)d_data.size(); i += stride)
+    const size_t n = (size_t)d_data.size();
+    for (size_t i = idx; i < n; i += stride)
     {
         int v = d_data[i];
-        if (v < 0)
-            v = 0;
-        if (v > 255)
-            v = 255;
-        atomicAdd(&d_hist[v], 1);
+        if ((unsigned)v > 255u) {
+            v = (v < 0) ? 0 : 255;
+        }
+        atomicAdd(&s_hist[(unsigned)v], 1u);
+    }
+
+    __syncthreads();
+
+    for (int b = tid; b < 256; b += block_threads)
+    {
+        unsigned int val = s_hist[b];
+        if (val != 0u)
+        {
+            atomicAdd(reinterpret_cast<unsigned int*>(&d_hist[b]), val);
+        }
     }
 }
 
