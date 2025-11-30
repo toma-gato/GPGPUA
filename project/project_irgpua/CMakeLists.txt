@@ -27,7 +27,7 @@ include_directories(src)
 
 add_executable(main src/main.cu)
 add_executable(main_gpu src/main_gpu.cu)
-add_executable(main_gpu_indus src/main_gpu.cu)
+add_executable(main_gpu_indus src/main_gpu_indus.cu)
 
 if(USE_GPU)
     target_compile_definitions(main PRIVATE USE_GPU)
