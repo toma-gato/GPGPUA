@@ -13,7 +13,7 @@ __global__ void scatter(cuda::std::span<int> d_input,
                         cuda::std::span<int> d_scanned_predicate);
 
 template <size_t BLOCK_SIZE = 256>
-void compact_byhand(rmm::device_vector<int> &input, rmm::device_vector<int> &output, int flag)
+int compact_byhand(rmm::device_vector<int> &input, rmm::device_vector<int> &output, int flag)
 {
     rmm::device_vector<int> d_predicate(input.size());
     cuda::std::span<int> d_input_span(input.data().get(), input.size());
@@ -30,4 +30,23 @@ void compact_byhand(rmm::device_vector<int> &input, rmm::device_vector<int> &out
     cuda::std::span<int> d_scanned_predicate_span(d_scanned_predicate.data().get(), d_scanned_predicate.size());
     scatter<<<GRID_SIZE, BLOCK_SIZE, 0>>>(d_input_span, d_output_span, d_scanned_predicate_span, d_predicate_span);
     cudaDeviceSynchronize();
+
+    // Determine compacted size: last_scanned + last_predicate
+    int last_pred = 0;
+    int last_scan = 0;
+    if (input.size() > 0)
+    {
+        // copy the last elements from device
+        cudaMemcpy(&last_pred,
+                   thrust::raw_pointer_cast(d_predicate.data()) + (input.size() - 1),
+                   sizeof(int),
+                   cudaMemcpyDeviceToHost);
+
+        cudaMemcpy(&last_scan,
+                   thrust::raw_pointer_cast(d_scanned_predicate.data()) + (input.size() - 1),
+                   sizeof(int),
+                   cudaMemcpyDeviceToHost);
+    }
+
+    return last_scan + last_pred;
 }

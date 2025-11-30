@@ -12,14 +12,15 @@ __global__ void build_lut(cuda::std::span<int> d_cdf, cuda::std::span<int> d_lut
 __global__ void apply_lut(cuda::std::span<int> d_data, cuda::std::span<int> d_lut);
 
 template <size_t BLOCK_SIZE = 256>
-void histogram_equalize_byhand(rmm::device_vector<int> &d_data)
+void histogram_equalize_byhand(rmm::device_vector<int> &d_data, size_t num_elements = 0)
 {
     const int NUM_BINS = 256;
-    size_t num_elements = d_data.size();
+    if (num_elements == 0)
+        num_elements = d_data.size();
 
     // allocate histogram (initialized to 0)
     rmm::device_vector<int> d_hist(NUM_BINS, 0);
-    cuda::std::span<int> data_span(thrust::raw_pointer_cast(d_data.data()), d_data.size());
+    cuda::std::span<int> data_span(thrust::raw_pointer_cast(d_data.data()), num_elements);
     cuda::std::span<int> hist_span(thrust::raw_pointer_cast(d_hist.data()), d_hist.size());
 
     // launch histogram kernel

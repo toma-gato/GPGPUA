@@ -28,7 +28,7 @@ __global__ void histogram_kernel(cuda::std::span<int> d_data, cuda::std::span<in
 // Build inclusive CDF: cdf[i] = exclusive[i] + hist[i]
 __global__ void build_inclusive_cdf(cuda::std::span<int> d_exclusive, cuda::std::span<int> d_hist, cuda::std::span<int> d_cdf)
 {
-    int i = threadIdx.x;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < d_hist.size())
     {
         d_cdf[i] = d_exclusive[i] + d_hist[i];
@@ -38,7 +38,7 @@ __global__ void build_inclusive_cdf(cuda::std::span<int> d_exclusive, cuda::std:
 // Build LUT from inclusive cdf, using cdf_min and total pixels N
 __global__ void build_lut(cuda::std::span<int> d_cdf, cuda::std::span<int> d_lut, int total_pixels, int cdf_min)
 {
-    int i = threadIdx.x;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < d_cdf.size())
     {
         int cdf = d_cdf[i];
