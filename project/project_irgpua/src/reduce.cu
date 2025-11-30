@@ -1,5 +1,6 @@
 #include "reduce.cuh"
 
+
 __global__ void reduce_block(cuda::std::span<int> d_data, cuda::std::span<int> d_output)
 {
     extern __shared__ int s_data[];

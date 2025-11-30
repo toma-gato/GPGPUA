@@ -11,6 +11,7 @@
 #include <numeric>
 
 #include "fix_gpu.cuh"
+#include "reduce.cuh"
 
 #include <thrust/device_ptr.h>
 
@@ -88,7 +89,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
         auto &image = images[i];
         const int image_size = image.width * image.height;
 
-        image.to_sort.total = std::reduce(image.buffer, image.buffer + image_size, 0);
+        rmm::device_vector<int> d_buf(image_size);
+        cudaMemcpyAsync(d_buf.data().get(), images[i].buffer, image_size * sizeof(int),
+                        cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+        cudaStreamSynchronize(rmm::cuda_stream_default);
+
+        image.to_sort.total = reduce_byhand(d_buf);
     }
 
     // - All totals are known, sort images accordingly (OPTIONAL)

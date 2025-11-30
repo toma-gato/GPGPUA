@@ -22,7 +22,7 @@ done
 
 # Benchmark byhand version
 sudo ncu -o "bench_v${VERSION}-byhand" "${section_args[@]}" \
-	-k "regex:.*(regex|scan|propagate|histogram|histogram_kernel|build_inclusive_cdf|build_lut|apply_lut|histogram_equalize_byhand).*" \
+	-k "regex:.*(reduce|scan|propagate|histogram|histogram_kernel|build_inclusive_cdf|build_lut|apply_lut|histogram_equalize_byhand).*" \
 	"$BYHAND_PROGRAM_PATH"
 
 # Benchmark industrial version
