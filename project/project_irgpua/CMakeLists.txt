@@ -29,13 +29,6 @@ add_executable(main src/main.cu)
 add_executable(main_gpu src/main_gpu.cu)
 add_executable(main_gpu_indus src/main_gpu_indus.cu)
 
-if(USE_GPU)
-    target_compile_definitions(main PRIVATE USE_GPU)
-    message(STATUS "Building with GPU support enabled")
-else()
-    message(STATUS "Building with CPU only")
-endif()
-
 target_compile_options(main PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=${OpenMP_CXX_FLAGS}>)
 target_link_libraries(main PUBLIC OpenMP::OpenMP_CXX rmm::rmm raft::raft)
 target_compile_options(main_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=${OpenMP_CXX_FLAGS}>)
