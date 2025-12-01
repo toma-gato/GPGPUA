@@ -2,6 +2,7 @@
 #include "../cuda_tools/cuda_error_checking.cuh"
 
 #include <cub/cub.cuh>
+#include <raft/core/device_span.hpp>
 #include <thrust/transform.h>
 #include <thrust/execution_policy.h>
 #include <thrust/iterator/counting_iterator.h>
@@ -70,7 +71,8 @@ void apply_pattern_treatment(rmm::device_uvector<int> &buffer, cudaStream_t stre
     );
 }
 
-__global__ void apply_histogram_equalization_kernel(raft::device_span<int> data, size_t n, const raft::device_span<int> cumulative_histo, int cdf_min, int total_pixels)
+// Kernel pour appliquer la transformation d'égalisation
+__global__ void apply_histogram_equalization_kernel(int* data, size_t n, const int* cumulative_histo, int cdf_min, int total_pixels)
 {
     size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     
@@ -82,7 +84,8 @@ __global__ void apply_histogram_equalization_kernel(raft::device_span<int> data,
     }
 }
 
-__global__ void find_first_nonzero_kernel(const raft::device_span<int> histo, raft::device_span<int> result, int size)
+// Kernel pour trouver le premier élément non-zéro
+__global__ void find_first_nonzero_kernel(const int* histo, int* result, int size)
 {
     __shared__ int found;
     __shared__ int min_idx;
@@ -105,7 +108,7 @@ __global__ void find_first_nonzero_kernel(const raft::device_span<int> histo, ra
     
     if (threadIdx.x == 0 && found)
     {
-        atomicMin(result.data(), min_idx);
+        atomicMin(result, min_idx);
     }
 }
 
@@ -113,6 +116,7 @@ void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t s
 {
     size_t n = buffer.size();
     
+    // Calculer l'histogramme avec CUB
     const int num_bins = 256;
     const int lower_level = 0;
     const int upper_level = 256;
@@ -138,6 +142,7 @@ void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t s
         n, stream
     );
     
+    // Calculer le scan inclusif avec CUB
     rmm::device_uvector<int> cumulative_histo(num_bins, stream);
     
     d_temp_storage = nullptr;
@@ -155,8 +160,10 @@ void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t s
         num_bins, stream
     );
     
+    // Trouver le premier élément non-zéro
     rmm::device_uvector<int> d_cdf_min(1, stream);
     
+    // Initialiser à une valeur élevée
     int init_value = num_bins;
     cudaMemcpyAsync(d_cdf_min.data(), &init_value, sizeof(int), cudaMemcpyHostToDevice, stream);
     
@@ -164,13 +171,15 @@ void histogram_equalization_gpu(rmm::device_uvector<int> &buffer, cudaStream_t s
     int blocks = (num_bins + threads - 1) / threads;
     find_first_nonzero_kernel<<<blocks, threads, 0, stream>>>(cumulative_histo.data(), d_cdf_min.data(), num_bins);
     
+    // Récupérer l'index du premier non-zéro
     int first_nonzero_idx = d_cdf_min.element(0, stream);
     
+    // Récupérer la valeur cdf_min
     rmm::device_uvector<int> d_cdf_min_value(1, stream);
     cudaMemcpyAsync(d_cdf_min_value.data(), cumulative_histo.data() + first_nonzero_idx, sizeof(int), cudaMemcpyDeviceToDevice, stream);
     int cdf_min = d_cdf_min_value.element(0, stream);
         
-    // Egalisation
+    // Appliquer la transformation d'égalisation
     threads = 256;
     blocks = (n + threads - 1) / threads;
     
