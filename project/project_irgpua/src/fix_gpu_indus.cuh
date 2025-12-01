@@ -1,6 +1,7 @@
 #pragma once
 
 #include <rmm/device_uvector.hpp>
+#include <raft/core/device_span.hpp>
 
 void remove_garbage(rmm::device_uvector<int> &buffer, cudaStream_t stream);
 
