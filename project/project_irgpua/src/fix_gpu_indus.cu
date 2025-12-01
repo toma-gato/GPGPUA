@@ -106,7 +106,7 @@ __global__ void find_first_nonzero_kernel(const raft::device_span<int> histo, ra
     
     if (threadIdx.x == 0 && found)
     {
-        atomicMin(result, min_idx);
+        atomicMin(result.data(), min_idx);
     }
 }
 
