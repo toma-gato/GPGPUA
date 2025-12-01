@@ -2,7 +2,6 @@
 #include "../cuda_tools/cuda_error_checking.cuh"
 
 #include <cub/cub.cuh>
-#include <raft/core/device_span.hpp>
 #include <thrust/transform.h>
 #include <thrust/execution_policy.h>
 #include <thrust/iterator/counting_iterator.h>
